@@ -31,6 +31,21 @@ export default function ImovelDetalhe() {
 
   const docs = documentos.filter((d) => d.imovelId === im.id);
   const hist = historico.filter((h) => h.imovelId === im.id);
+  const sla = slaInfo(im);
+  const docsPendentes = docs.filter((d) => d.status === "pendente").length;
+  const docsConferidos = docs.filter((d) => d.status === "conferido").length;
+
+  function exportVerticesCSV() {
+    const header = ["codigo", "tipo", "leste", "norte", "latitude", "longitude", "altitude", "datum", "sistema", "metodo", "precisao_m", "data"];
+    const rows = im!.vertices.map((v) => [v.codigo, v.tipo, v.leste, v.norte, v.latitude, v.longitude, v.altitude.toFixed(2), v.datum, v.sistema, v.metodo, v.precisao.toFixed(3), v.data]);
+    const csv = [header, ...rows].map((r) => r.join(";")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `vertices-${im!.matricula.replace(/\W/g, "-")}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${im!.vertices.length} vértices exportados`);
+  }
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
