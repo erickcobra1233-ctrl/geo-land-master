@@ -7,6 +7,7 @@ import { STATUS_LABEL, type ProcessStatus } from "@/data/mockData";
 import {
   Layers, MapPinned, CheckCircle2, AlertTriangle, TrendingUp, Clock, FileWarning, Activity,
 } from "lucide-react";
+import { slaInfo } from "@/data/mockData";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RTooltip, Cell, PieChart, Pie } from "recharts";
 import { Link, useNavigate } from "react-router-dom";
 import { format, parseISO } from "date-fns";
@@ -26,6 +27,9 @@ export default function Dashboard() {
   const emAndamento = imoveis.filter((i) => !["concluido", "pendente"].includes(i.status)).length;
   const concluidos = imoveis.filter((i) => i.status === "concluido").length;
   const pendentes = documentos.filter((d) => d.status === "pendente").length;
+  const vencidos = imoveis.filter((i) => slaInfo(i).vencido).length;
+  const proximos = imoveis.filter((i) => slaInfo(i).proximo).length;
+  const areaTotal = imoveis.reduce((s, i) => s + i.areaHa, 0);
 
   const porStatus = (Object.keys(STATUS_LABEL) as ProcessStatus[]).map((s) => ({
     status: s,
@@ -61,11 +65,12 @@ export default function Dashboard() {
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard icon={Layers} label="Imóveis cadastrados" value={totalImoveis} accent="primary" trend="+12% mês" />
-        <KpiCard icon={Activity} label="Processos em andamento" value={emAndamento} accent="info" trend="ativos" />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <KpiCard icon={Layers} label="Imóveis" value={totalImoveis} accent="primary" trend={`${areaTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} ha total`} />
+        <KpiCard icon={Activity} label="Em andamento" value={emAndamento} accent="info" trend="ativos" />
         <KpiCard icon={CheckCircle2} label="Concluídos" value={concluidos} accent="success" trend={`${Math.round((concluidos / totalImoveis) * 100)}% do total`} />
-        <KpiCard icon={MapPinned} label="Pontos cadastrados" value={pontos.length} accent="secondary" trend="banco geodésico" />
+        <KpiCard icon={AlertTriangle} label="Prazos vencidos" value={vencidos} accent="destructive" trend={`${proximos} próximos`} />
+        <KpiCard icon={MapPinned} label="Pontos no banco" value={pontos.length} accent="secondary" trend="reutilizáveis" />
       </div>
 
       {/* Mapa geral + status */}
@@ -218,12 +223,13 @@ export default function Dashboard() {
 
 function KpiCard({
   icon: Icon, label, value, trend, accent,
-}: { icon: any; label: string; value: number | string; trend?: string; accent: "primary" | "info" | "success" | "secondary" }) {
+}: { icon: any; label: string; value: number | string; trend?: string; accent: "primary" | "info" | "success" | "secondary" | "destructive" }) {
   const accentMap = {
     primary: "bg-primary/10 text-primary",
     info: "bg-info/10 text-info",
     success: "bg-success/10 text-success",
     secondary: "bg-secondary/10 text-secondary",
+    destructive: "bg-destructive/10 text-destructive",
   };
   return (
     <div className="stat-card">
