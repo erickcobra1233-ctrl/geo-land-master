@@ -221,6 +221,10 @@ export const imoveis: Imovel[] = seeds.map((s, i) => {
   const id = `i${i + 1}`;
   const poligono = poligonoAo(s.centro, s.w, s.h);
   const cliente = clientes[s.cliente];
+  // Datas variadas: alguns prazos vencidos (2024), alguns próximos (2025), alguns futuros (2026)
+  const mesInicio = (i % 11) + 1;
+  const mesPrev = ((i * 2) % 12) + 1;
+  const anoPrev = i % 4 === 0 ? 2025 : i % 5 === 0 ? 2024 : 2026;
   return {
     id,
     nome: s.nome,
@@ -236,8 +240,8 @@ export const imoveis: Imovel[] = seeds.map((s, i) => {
     proprietarioNome: cliente.nome,
     cpfCnpj: cliente.cpfCnpj,
     situacao: i % 4 === 0 ? "Regular" : i % 4 === 1 ? "Em regularização" : i % 4 === 2 ? "Com pendências" : "Regular",
-    dataInicio: `2024-0${(i % 9) + 1}-${String(((i * 3) % 27) + 1).padStart(2, "0")}`,
-    dataPrevisao: `2025-0${(i % 6) + 2}-15`,
+    dataInicio: `2024-${String(mesInicio).padStart(2, "0")}-${String(((i * 3) % 27) + 1).padStart(2, "0")}`,
+    dataPrevisao: `${anoPrev}-${String(mesPrev).padStart(2, "0")}-${String(((i * 5) % 27) + 1).padStart(2, "0")}`,
     responsavelTecnico: rt[i % rt.length],
     equipeCampo: [eq[i % eq.length], eq[(i + 1) % eq.length]],
     status: s.status,
