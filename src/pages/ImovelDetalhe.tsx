@@ -1,0 +1,252 @@
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useGeoStore } from "@/store/useGeoStore";
+import { PageHeader } from "@/components/PageHeader";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/StatusBadge";
+import { MapView } from "@/components/MapView";
+import { ArrowLeft, Pencil, Download, FileText, Image as ImageIcon, FileSpreadsheet, FileArchive, Eye } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+export default function ImovelDetalhe() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { imoveis, documentos, historico } = useGeoStore();
+  const im = imoveis.find((x) => x.id === id);
+
+  if (!im) {
+    return (
+      <div className="p-6">
+        <Card className="p-8 text-center">
+          <div className="text-muted-foreground">Imóvel não encontrado.</div>
+          <Button onClick={() => navigate("/imoveis")} className="mt-4">Voltar</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  const docs = documentos.filter((d) => d.imovelId === im.id);
+  const hist = historico.filter((h) => h.imovelId === im.id);
+
+  return (
+    <div className="p-6 max-w-[1600px] mx-auto">
+      <Link to="/imoveis" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-3">
+        <ArrowLeft className="w-3.5 h-3.5" /> Imóveis
+      </Link>
+      <PageHeader
+        breadcrumb={`Imóvel · ${im.codigoIncra}`}
+        title={im.nome}
+        subtitle={`${im.municipio}/${im.estado} · ${im.areaHa.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} ha · Matrícula ${im.matricula}`}
+        actions={
+          <>
+            <StatusBadge status={im.status} />
+            <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" /> Exportar</Button>
+            <Button size="sm" className="gap-2"><Pencil className="w-4 h-4" /> Editar</Button>
+          </>
+        }
+      />
+
+      <Tabs defaultValue="info" className="space-y-4">
+        <TabsList className="bg-card border border-border">
+          <TabsTrigger value="info">Informações</TabsTrigger>
+          <TabsTrigger value="mapa">Mapa do Imóvel</TabsTrigger>
+          <TabsTrigger value="vertices">Pontos & Vértices</TabsTrigger>
+          <TabsTrigger value="confrontantes">Confrontantes</TabsTrigger>
+          <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="historico">Histórico</TabsTrigger>
+        </TabsList>
+
+        {/* INFO */}
+        <TabsContent value="info" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <Card className="p-5 lg:col-span-2">
+              <div className="text-sm font-display font-semibold mb-4">Dados do imóvel</div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                <Field label="Nome" value={im.nome} />
+                <Field label="Matrícula" value={im.matricula} mono />
+                <Field label="Código INCRA" value={im.codigoIncra} mono />
+                <Field label="CCIR" value={im.ccir} mono />
+                <Field label="Município / Comarca" value={`${im.municipio} / ${im.comarca}`} />
+                <Field label="Estado" value={im.estado} />
+                <Field label="Área (ha)" value={im.areaHa.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} mono />
+                <Field label="Área (m²)" value={im.areaM2.toLocaleString("pt-BR")} mono />
+                <Field label="Situação" value={im.situacao} />
+                <Field label="Data de início" value={format(parseISO(im.dataInicio), "dd/MM/yyyy")} />
+              </div>
+            </Card>
+            <Card className="p-5">
+              <div className="text-sm font-display font-semibold mb-4">Proprietário</div>
+              <div className="space-y-3 text-sm">
+                <Field label="Nome" value={im.proprietarioNome} />
+                <Field label="CPF/CNPJ" value={im.cpfCnpj} mono />
+                {im.conjuge && <Field label="Cônjuge" value={im.conjuge} />}
+              </div>
+              <div className="my-5 h-px bg-border" />
+              <div className="text-sm font-display font-semibold mb-3">Equipe</div>
+              <div className="space-y-3 text-sm">
+                <Field label="Responsável técnico" value={im.responsavelTecnico} />
+                <Field label="Equipe de campo" value={im.equipeCampo.join(", ")} />
+              </div>
+            </Card>
+          </div>
+          {im.notasInternas && (
+            <Card className="p-5 border-info/30 bg-info/5">
+              <div className="text-sm font-display font-semibold mb-2">Notas internas</div>
+              <div className="text-sm text-foreground/80">{im.notasInternas}</div>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* MAPA */}
+        <TabsContent value="mapa">
+          <Card className="overflow-hidden p-0">
+            <div className="h-[560px]"><MapView imoveis={[im]} pontos={[]} fitTo={im.poligono} /></div>
+            <div className="p-4 border-t border-border flex flex-wrap gap-4 text-xs">
+              <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-primary/60 border border-primary" /> Polígono do imóvel</div>
+              <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-info" /> Vértices</div>
+              <div className="ml-auto text-muted-foreground font-mono">{im.vertices.length} vértices · perímetro estimado</div>
+            </div>
+          </Card>
+        </TabsContent>
+
+        {/* VERTICES */}
+        <TabsContent value="vertices">
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full data-table text-xs">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left px-4 py-3">Código</th>
+                    <th className="text-left px-4 py-3">Tipo</th>
+                    <th className="text-right px-4 py-3">Leste (E)</th>
+                    <th className="text-right px-4 py-3">Norte (N)</th>
+                    <th className="text-right px-4 py-3">Latitude</th>
+                    <th className="text-right px-4 py-3">Longitude</th>
+                    <th className="text-right px-4 py-3">Alt (m)</th>
+                    <th className="text-left px-4 py-3">Datum</th>
+                    <th className="text-left px-4 py-3">Método</th>
+                    <th className="text-right px-4 py-3">Prec. (m)</th>
+                  </tr>
+                </thead>
+                <tbody className="font-mono">
+                  {im.vertices.map((v) => (
+                    <tr key={v.id} className="border-b border-border hover:bg-muted/40">
+                      <td className="px-4 py-2.5 font-semibold text-primary">{v.codigo}</td>
+                      <td className="px-4 py-2.5"><span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">{v.tipo}</span></td>
+                      <td className="px-4 py-2.5 text-right">{v.leste.toFixed(3)}</td>
+                      <td className="px-4 py-2.5 text-right">{v.norte.toFixed(3)}</td>
+                      <td className="px-4 py-2.5 text-right">{v.latitude.toFixed(6)}</td>
+                      <td className="px-4 py-2.5 text-right">{v.longitude.toFixed(6)}</td>
+                      <td className="px-4 py-2.5 text-right">{v.altitude.toFixed(2)}</td>
+                      <td className="px-4 py-2.5 font-sans text-muted-foreground">{v.datum}</td>
+                      <td className="px-4 py-2.5 font-sans text-muted-foreground">{v.metodo}</td>
+                      <td className="px-4 py-2.5 text-right">{v.precisao.toFixed(3)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </TabsContent>
+
+        {/* CONFRONTANTES */}
+        <TabsContent value="confrontantes">
+          <Card className="overflow-hidden">
+            <table className="w-full data-table text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left px-4 py-3">Confrontante</th>
+                  <th className="text-left px-4 py-3">Tipo de divisa</th>
+                  <th className="text-left px-4 py-3">Lado</th>
+                  <th className="text-left px-4 py-3">Documento</th>
+                  <th className="text-left px-4 py-3">Observações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {im.confrontantes.map((c) => (
+                  <tr key={c.id} className="border-b border-border hover:bg-muted/40">
+                    <td className="px-4 py-3 font-medium">{c.nome}</td>
+                    <td className="px-4 py-3"><span className="px-2 py-0.5 bg-muted rounded text-xs">{c.tipoDivisa}</span></td>
+                    <td className="px-4 py-3 text-xs">{c.lado}</td>
+                    <td className="px-4 py-3 text-xs font-mono">{c.documento || "—"}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{c.obs || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        </TabsContent>
+
+        {/* DOCUMENTOS */}
+        <TabsContent value="documentos">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {docs.map((d) => (
+              <Card key={d.id} className="p-4 hover:shadow-elevated transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0">
+                    <DocIcon tipo={d.tipo} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{d.nome}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {d.tipo} · {d.tamanho} · {format(parseISO(d.data), "dd MMM yyyy", { locale: ptBR })}
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className={`text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${
+                        d.status === "conferido" ? "bg-success/15 text-success" :
+                        d.status === "pendente" ? "bg-warning/15 text-warning" : "bg-info/15 text-info"
+                      }`}>
+                        {d.status}
+                      </span>
+                      <button className="text-muted-foreground hover:text-foreground"><Eye className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* HISTÓRICO */}
+        <TabsContent value="historico">
+          <Card className="p-6">
+            <div className="space-y-0">
+              {hist.map((h, idx) => (
+                <div key={h.id} className="flex gap-4 group">
+                  <div className="flex flex-col items-center">
+                    <div className="w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-primary/15 mt-1.5" />
+                    {idx < hist.length - 1 && <div className="w-px flex-1 bg-border my-1" />}
+                  </div>
+                  <div className="flex-1 pb-6">
+                    <div className="text-xs text-muted-foreground font-mono">{format(parseISO(h.data), "dd/MM/yyyy")}</div>
+                    <div className="text-sm font-medium mt-0.5">{h.acao}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">por {h.usuario}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{label}</div>
+      <div className={`mt-0.5 ${mono ? "font-mono text-xs" : ""}`}>{value}</div>
+    </div>
+  );
+}
+
+function DocIcon({ tipo }: { tipo: string }) {
+  if (tipo === "PDF") return <FileText className="w-5 h-5 text-destructive" />;
+  if (tipo === "DWG" || tipo === "KML") return <FileSpreadsheet className="w-5 h-5 text-info" />;
+  if (tipo === "ZIP") return <FileArchive className="w-5 h-5 text-warning" />;
+  if (tipo === "JPG" || tipo === "PNG") return <ImageIcon className="w-5 h-5 text-secondary" />;
+  return <FileText className="w-5 h-5 text-muted-foreground" />;
+}
