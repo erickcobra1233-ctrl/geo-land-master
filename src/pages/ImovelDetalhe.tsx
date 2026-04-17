@@ -6,9 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { MapView } from "@/components/MapView";
-import { ArrowLeft, Pencil, Download, FileText, Image as ImageIcon, FileSpreadsheet, FileArchive, Eye } from "lucide-react";
+import { ArrowLeft, Pencil, Download, FileText, Image as ImageIcon, FileSpreadsheet, FileArchive, Eye, AlertTriangle, Clock, Calendar, CheckCircle2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { slaInfo } from "@/data/mockData";
+import { toast } from "sonner";
 
 export default function ImovelDetalhe() {
   const { id } = useParams();
@@ -29,6 +31,21 @@ export default function ImovelDetalhe() {
 
   const docs = documentos.filter((d) => d.imovelId === im.id);
   const hist = historico.filter((h) => h.imovelId === im.id);
+  const sla = slaInfo(im);
+  const docsPendentes = docs.filter((d) => d.status === "pendente").length;
+  const docsConferidos = docs.filter((d) => d.status === "conferido").length;
+
+  function exportVerticesCSV() {
+    const header = ["codigo", "tipo", "leste", "norte", "latitude", "longitude", "altitude", "datum", "sistema", "metodo", "precisao_m", "data"];
+    const rows = im!.vertices.map((v) => [v.codigo, v.tipo, v.leste, v.norte, v.latitude, v.longitude, v.altitude.toFixed(2), v.datum, v.sistema, v.metodo, v.precisao.toFixed(3), v.data]);
+    const csv = [header, ...rows].map((r) => r.join(";")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `vertices-${im!.matricula.replace(/\W/g, "-")}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${im!.vertices.length} vértices exportados`);
+  }
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
@@ -42,19 +59,28 @@ export default function ImovelDetalhe() {
         actions={
           <>
             <StatusBadge status={im.status} />
-            <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" /> Exportar</Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={exportVerticesCSV}><Download className="w-4 h-4" /> Exportar vértices</Button>
             <Button size="sm" className="gap-2"><Pencil className="w-4 h-4" /> Editar</Button>
           </>
         }
       />
 
+      {/* Status bar — SLA e indicadores operacionais */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+        <SLAStat label="Prazo" value={sla.rotulo} icon={sla.vencido ? AlertTriangle : sla.proximo ? Clock : Calendar} accent={sla.vencido ? "destructive" : sla.proximo ? "warning" : "muted"} sub={`prev. ${format(parseISO(im.dataPrevisao), "dd/MM/yyyy")}`} />
+        <SLAStat label="Vértices" value={String(im.vertices.length)} icon={FileSpreadsheet} accent="primary" sub={`${im.confrontantes.length} confrontantes`} />
+        <SLAStat label="Documentos" value={`${docsConferidos}/${docs.length}`} icon={CheckCircle2} accent={docsPendentes > 0 ? "warning" : "success"} sub={`${docsPendentes} pendentes`} />
+        <SLAStat label="Progresso" value={`${im.progresso}%`} icon={Calendar} accent="info" sub={`início ${format(parseISO(im.dataInicio), "dd/MM/yyyy")}`} />
+        <SLAStat label="Situação" value={im.situacao} icon={CheckCircle2} accent="muted" sub={im.notasInternas ? "notas internas" : "—"} />
+      </div>
+
       <Tabs defaultValue="info" className="space-y-4">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="info">Informações</TabsTrigger>
           <TabsTrigger value="mapa">Mapa do Imóvel</TabsTrigger>
-          <TabsTrigger value="vertices">Pontos & Vértices</TabsTrigger>
-          <TabsTrigger value="confrontantes">Confrontantes</TabsTrigger>
-          <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="vertices">Pontos & Vértices ({im.vertices.length})</TabsTrigger>
+          <TabsTrigger value="confrontantes">Confrontantes ({im.confrontantes.length})</TabsTrigger>
+          <TabsTrigger value="documentos">Documentos ({docs.length})</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
 
@@ -249,4 +275,27 @@ function DocIcon({ tipo }: { tipo: string }) {
   if (tipo === "ZIP") return <FileArchive className="w-5 h-5 text-warning" />;
   if (tipo === "JPG" || tipo === "PNG") return <ImageIcon className="w-5 h-5 text-secondary" />;
   return <FileText className="w-5 h-5 text-muted-foreground" />;
+}
+
+function SLAStat({ label, value, sub, icon: Icon, accent }: { label: string; value: string; sub: string; icon: any; accent: "primary" | "info" | "success" | "warning" | "destructive" | "muted" }) {
+  const map: Record<string, string> = {
+    primary: "bg-primary/10 text-primary border-primary/20",
+    info: "bg-info/10 text-info border-info/20",
+    success: "bg-success/10 text-success border-success/20",
+    warning: "bg-warning/10 text-warning border-warning/20",
+    destructive: "bg-destructive/10 text-destructive border-destructive/30",
+    muted: "bg-muted text-muted-foreground border-border",
+  };
+  return (
+    <div className="bg-card border border-border rounded-lg p-3 flex items-center gap-3">
+      <div className={`w-9 h-9 rounded-md border flex items-center justify-center shrink-0 ${map[accent]}`}>
+        <Icon className="w-4 h-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</div>
+        <div className="text-sm font-display font-semibold truncate" title={value}>{value}</div>
+        <div className="text-[10px] text-muted-foreground truncate" title={sub}>{sub}</div>
+      </div>
+    </div>
+  );
 }

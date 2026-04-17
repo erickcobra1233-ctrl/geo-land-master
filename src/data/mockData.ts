@@ -208,12 +208,23 @@ const seeds: ImovelSeed[] = [
   { nome: "Faz. Esperança", mun: "Jataí", comarca: "Jataí", uf: "GO", centro: [-17.8806, -51.7142], w: 6.1, h: 4.8, areaHa: 2341.07, status: "documentacao", progresso: 65, cliente: 4 },
   { nome: "Sítio Aroeira", mun: "Sorriso", comarca: "Sorriso", uf: "MT", centro: [-12.5102, -55.7589], w: 1.2, h: 0.9, areaHa: 98.42, status: "pendente", progresso: 25, cliente: 0 },
   { nome: "Faz. Vale do Sol", mun: "Rio Verde", comarca: "Rio Verde", uf: "GO", centro: [-17.7521, -50.9802], w: 3.8, h: 3.0, areaHa: 1024.55, status: "sigef", progresso: 81, cliente: 1 },
+  { nome: "Faz. Barra Mansa", mun: "Sinop", comarca: "Sinop", uf: "MT", centro: [-11.8604, -55.5021], w: 5.6, h: 4.3, areaHa: 2104.30, status: "campo", progresso: 12, cliente: 0 },
+  { nome: "Sítio das Palmeiras", mun: "Dourados", comarca: "Dourados", uf: "MS", centro: [-22.1840, -54.8632], w: 1.4, h: 1.1, areaHa: 142.66, status: "documentacao", progresso: 71, cliente: 3 },
+  { nome: "Faz. Santa Helena", mun: "Jataí", comarca: "Jataí", uf: "GO", centro: [-17.9204, -51.6608], w: 4.2, h: 3.4, areaHa: 1432.18, status: "conferencia", progresso: 49, cliente: 4 },
+  { nome: "Faz. Riacho Doce", mun: "Patrocínio", comarca: "Patrocínio", uf: "MG", centro: [-18.9405, -46.9938], w: 3.1, h: 2.5, areaHa: 712.40, status: "processamento", progresso: 38, cliente: 2 },
+  { nome: "Sítio Boa Esperança II", mun: "Rio Verde", comarca: "Rio Verde", uf: "GO", centro: [-17.8230, -50.9012], w: 1.6, h: 1.3, areaHa: 187.55, status: "pendente", progresso: 8, cliente: 1 },
+  { nome: "Faz. Cristalina", mun: "Sorriso", comarca: "Sorriso", uf: "MT", centro: [-12.6210, -55.7402], w: 4.8, h: 3.7, areaHa: 1654.92, status: "sigef", progresso: 85, cliente: 0 },
+  { nome: "Faz. Ponta Verde", mun: "Sinop", comarca: "Sinop", uf: "MT", centro: [-11.9022, -55.4630], w: 3.2, h: 2.6, areaHa: 768.21, status: "cartorio", progresso: 95, cliente: 0 },
 ];
 
 export const imoveis: Imovel[] = seeds.map((s, i) => {
   const id = `i${i + 1}`;
   const poligono = poligonoAo(s.centro, s.w, s.h);
   const cliente = clientes[s.cliente];
+  // Datas variadas: alguns prazos vencidos (2024), alguns próximos (2025), alguns futuros (2026)
+  const mesInicio = (i % 11) + 1;
+  const mesPrev = ((i * 2) % 12) + 1;
+  const anoPrev = i % 4 === 0 ? 2025 : i % 5 === 0 ? 2024 : 2026;
   return {
     id,
     nome: s.nome,
@@ -229,8 +240,8 @@ export const imoveis: Imovel[] = seeds.map((s, i) => {
     proprietarioNome: cliente.nome,
     cpfCnpj: cliente.cpfCnpj,
     situacao: i % 4 === 0 ? "Regular" : i % 4 === 1 ? "Em regularização" : i % 4 === 2 ? "Com pendências" : "Regular",
-    dataInicio: `2024-0${(i % 9) + 1}-${String(((i * 3) % 27) + 1).padStart(2, "0")}`,
-    dataPrevisao: `2025-0${(i % 6) + 2}-15`,
+    dataInicio: `2024-${String(mesInicio).padStart(2, "0")}-${String(((i * 3) % 27) + 1).padStart(2, "0")}`,
+    dataPrevisao: `${anoPrev}-${String(mesPrev).padStart(2, "0")}-${String(((i * 5) % 27) + 1).padStart(2, "0")}`,
     responsavelTecnico: rt[i % rt.length],
     equipeCampo: [eq[i % eq.length], eq[(i + 1) % eq.length]],
     status: s.status,
@@ -249,7 +260,7 @@ export const imoveis: Imovel[] = seeds.map((s, i) => {
 });
 
 // ───────────────── Pontos (banco) ─────────────────
-export const pontos: Ponto[] = imoveis.flatMap((im) =>
+const pontosVinculados: Ponto[] = imoveis.flatMap((im) =>
   im.vertices.map((v, idx) => ({
     id: `p-${im.id}-${idx}`,
     codigo: v.codigo,
@@ -274,6 +285,44 @@ export const pontos: Ponto[] = imoveis.flatMap((im) =>
     municipio: im.municipio,
   }))
 );
+
+// Pontos avulsos (não vinculados a imóvel) — banco geodésico reutilizável
+const avulsosSeed = [
+  { codigo: "RN-MT-0042", nome: "RN IBGE Sorriso Centro", tipo: "Referência" as const, mun: "Sorriso", uf: "MT", lat: -12.5443, lng: -55.7218, alt: 365.42, eq: "Trimble R10" },
+  { codigo: "RN-MT-0058", nome: "RN IBGE Sinop BR-163", tipo: "Referência" as const, mun: "Sinop", uf: "MT", lat: -11.8612, lng: -55.5034, alt: 384.10, eq: "Trimble R12i" },
+  { codigo: "AP-GO-0124", nome: "Apoio Rio Verde Sul", tipo: "Apoio" as const, mun: "Rio Verde", uf: "GO", lat: -17.7990, lng: -50.9275, alt: 720.55, eq: "Leica GS18" },
+  { codigo: "AP-GO-0125", nome: "Apoio Jataí Norte", tipo: "Apoio" as const, mun: "Jataí", uf: "GO", lat: -17.8810, lng: -51.7150, alt: 695.30, eq: "Leica GS18" },
+  { codigo: "AP-MG-0072", nome: "Apoio Uberaba Leste", tipo: "Apoio" as const, mun: "Uberaba", uf: "MG", lat: -19.7480, lng: -47.9395, alt: 824.15, eq: "Trimble R10" },
+  { codigo: "MK-MS-0203", nome: "Marco Dourados Faz. Jacaré", tipo: "Marco" as const, mun: "Dourados", uf: "MS", lat: -22.2240, lng: -54.8130, alt: 412.80, eq: "Topcon HiPer V" },
+  { codigo: "AUX-MT-0301", nome: "Auxiliar Sorriso Acesso BR", tipo: "Auxiliar" as const, mun: "Sorriso", uf: "MT", lat: -12.5460, lng: -55.7195, alt: 367.10, eq: "Stonex S70G" },
+  { codigo: "AUX-GO-0188", nome: "Auxiliar Vale do Sol", tipo: "Auxiliar" as const, mun: "Rio Verde", uf: "GO", lat: -17.7530, lng: -50.9810, alt: 712.40, eq: "Stonex S70G" },
+];
+
+const pontosAvulsos: Ponto[] = avulsosSeed.map((a, idx) => ({
+  id: `p-avu-${idx}`,
+  codigo: a.codigo,
+  nome: a.nome,
+  tipo: a.tipo,
+  categoria: a.tipo === "Referência" ? "RN IBGE" : a.tipo === "Marco" ? "Marco geodésico" : "Apoio topográfico",
+  descricao: `Ponto reutilizável - ${a.nome}`,
+  leste: 450000 + idx * 1200,
+  norte: 8200000 + idx * 4500,
+  latitude: a.lat,
+  longitude: a.lng,
+  altitude: a.alt,
+  sistema: "UTM 22S",
+  datum: "SIRGAS 2000",
+  precisaoH: 0.008 + idx * 0.002,
+  precisaoV: 0.012 + idx * 0.003,
+  metodo: idx % 2 ? "GNSS RTK" : "GNSS Estático",
+  equipamento: a.eq,
+  data: `2024-${String(((idx % 11) + 1)).padStart(2, "0")}-${String((idx * 4 % 27) + 1).padStart(2, "0")}`,
+  operador: rt[idx % rt.length],
+  imovelId: undefined,
+  municipio: a.mun,
+}));
+
+export const pontos: Ponto[] = [...pontosAvulsos, ...pontosVinculados];
 
 // ───────────────── Documentos ─────────────────
 const tiposDoc = [
@@ -311,3 +360,23 @@ export const historico: HistoricoEntry[] = imoveis.flatMap((im) => [
 ]);
 
 export const municipiosUnicos = Array.from(new Set(imoveis.map((i) => `${i.municipio}/${i.estado}`)));
+export const responsaveisUnicos = Array.from(new Set(imoveis.map((i) => i.responsavelTecnico)));
+
+// Helpers de SLA / prazos
+export function diasRestantes(dataPrevisao: string): number {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const prev = new Date(dataPrevisao + "T00:00:00");
+  return Math.round((prev.getTime() - hoje.getTime()) / 86400000);
+}
+
+export function slaInfo(im: Imovel): { dias: number; vencido: boolean; proximo: boolean; rotulo: string } {
+  if (im.status === "concluido") return { dias: 0, vencido: false, proximo: false, rotulo: "Entregue" };
+  const dias = diasRestantes(im.dataPrevisao);
+  return {
+    dias,
+    vencido: dias < 0,
+    proximo: dias >= 0 && dias <= 14,
+    rotulo: dias < 0 ? `${Math.abs(dias)}d em atraso` : dias === 0 ? "Vence hoje" : `${dias}d restantes`,
+  };
+}
