@@ -286,6 +286,42 @@ export const pontos: Ponto[] = imoveis.flatMap((im) =>
   }))
 );
 
+// Pontos avulsos (não vinculados a imóvel) — banco geodésico reutilizável
+const avulsosSeed = [
+  { codigo: "RN-MT-0042", nome: "RN IBGE Sorriso Centro", tipo: "Referência" as const, mun: "Sorriso", uf: "MT", lat: -12.5443, lng: -55.7218, alt: 365.42, eq: "Trimble R10" },
+  { codigo: "RN-MT-0058", nome: "RN IBGE Sinop BR-163", tipo: "Referência" as const, mun: "Sinop", uf: "MT", lat: -11.8612, lng: -55.5034, alt: 384.10, eq: "Trimble R12i" },
+  { codigo: "AP-GO-0124", nome: "Apoio Rio Verde Sul", tipo: "Apoio" as const, mun: "Rio Verde", uf: "GO", lat: -17.7990, lng: -50.9275, alt: 720.55, eq: "Leica GS18" },
+  { codigo: "AP-GO-0125", nome: "Apoio Jataí Norte", tipo: "Apoio" as const, mun: "Jataí", uf: "GO", lat: -17.8810, lng: -51.7150, alt: 695.30, eq: "Leica GS18" },
+  { codigo: "AP-MG-0072", nome: "Apoio Uberaba Leste", tipo: "Apoio" as const, mun: "Uberaba", uf: "MG", lat: -19.7480, lng: -47.9395, alt: 824.15, eq: "Trimble R10" },
+  { codigo: "MK-MS-0203", nome: "Marco Dourados Faz. Jacaré", tipo: "Marco" as const, mun: "Dourados", uf: "MS", lat: -22.2240, lng: -54.8130, alt: 412.80, eq: "Topcon HiPer V" },
+  { codigo: "AUX-MT-0301", nome: "Auxiliar Sorriso Acesso BR", tipo: "Auxiliar" as const, mun: "Sorriso", uf: "MT", lat: -12.5460, lng: -55.7195, alt: 367.10, eq: "Stonex S70G" },
+  { codigo: "AUX-GO-0188", nome: "Auxiliar Vale do Sol", tipo: "Auxiliar" as const, mun: "Rio Verde", uf: "GO", lat: -17.7530, lng: -50.9810, alt: 712.40, eq: "Stonex S70G" },
+];
+
+const pontosAvulsos: Ponto[] = avulsosSeed.map((a, idx) => ({
+  id: `p-avu-${idx}`,
+  codigo: a.codigo,
+  nome: a.nome,
+  tipo: a.tipo,
+  categoria: a.tipo === "Referência" ? "RN IBGE" : a.tipo === "Marco" ? "Marco geodésico" : "Apoio topográfico",
+  descricao: `Ponto reutilizável - ${a.nome}`,
+  leste: 450000 + idx * 1200,
+  norte: 8200000 + idx * 4500,
+  latitude: a.lat,
+  longitude: a.lng,
+  altitude: a.alt,
+  sistema: "UTM 22S",
+  datum: "SIRGAS 2000",
+  precisaoH: 0.008 + idx * 0.002,
+  precisaoV: 0.012 + idx * 0.003,
+  metodo: idx % 2 ? "GNSS RTK" : "GNSS Estático",
+  equipamento: a.eq,
+  data: `2024-${String(((idx % 11) + 1)).padStart(2, "0")}-${String((idx * 4 % 27) + 1).padStart(2, "0")}`,
+  operador: rt[idx % rt.length],
+  imovelId: undefined,
+  municipio: a.mun,
+}));
+
 // ───────────────── Documentos ─────────────────
 const tiposDoc = [
   { nome: "Matrícula atualizada", cat: "imovel", tipo: "PDF", tam: "412 KB" },
