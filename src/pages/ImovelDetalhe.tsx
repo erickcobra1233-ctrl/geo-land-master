@@ -59,7 +59,7 @@ export default function ImovelDetalhe() {
         actions={
           <>
             <StatusBadge status={im.status} />
-            <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" /> Exportar</Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={exportVerticesCSV}><Download className="w-4 h-4" /> Exportar vértices</Button>
             <Button size="sm" className="gap-2"><Pencil className="w-4 h-4" /> Editar</Button>
           </>
         }
