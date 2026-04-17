@@ -65,13 +65,22 @@ export default function ImovelDetalhe() {
         }
       />
 
+      {/* Status bar — SLA e indicadores operacionais */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+        <SLAStat label="Prazo" value={sla.rotulo} icon={sla.vencido ? AlertTriangle : sla.proximo ? Clock : Calendar} accent={sla.vencido ? "destructive" : sla.proximo ? "warning" : "muted"} sub={`prev. ${format(parseISO(im.dataPrevisao), "dd/MM/yyyy")}`} />
+        <SLAStat label="Vértices" value={String(im.vertices.length)} icon={FileSpreadsheet} accent="primary" sub={`${im.confrontantes.length} confrontantes`} />
+        <SLAStat label="Documentos" value={`${docsConferidos}/${docs.length}`} icon={CheckCircle2} accent={docsPendentes > 0 ? "warning" : "success"} sub={`${docsPendentes} pendentes`} />
+        <SLAStat label="Progresso" value={`${im.progresso}%`} icon={Calendar} accent="info" sub={`início ${format(parseISO(im.dataInicio), "dd/MM/yyyy")}`} />
+        <SLAStat label="Situação" value={im.situacao} icon={CheckCircle2} accent="muted" sub={im.notasInternas ? "notas internas" : "—"} />
+      </div>
+
       <Tabs defaultValue="info" className="space-y-4">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="info">Informações</TabsTrigger>
           <TabsTrigger value="mapa">Mapa do Imóvel</TabsTrigger>
-          <TabsTrigger value="vertices">Pontos & Vértices</TabsTrigger>
-          <TabsTrigger value="confrontantes">Confrontantes</TabsTrigger>
-          <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="vertices">Pontos & Vértices ({im.vertices.length})</TabsTrigger>
+          <TabsTrigger value="confrontantes">Confrontantes ({im.confrontantes.length})</TabsTrigger>
+          <TabsTrigger value="documentos">Documentos ({docs.length})</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
 
