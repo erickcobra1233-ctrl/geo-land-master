@@ -276,3 +276,26 @@ function DocIcon({ tipo }: { tipo: string }) {
   if (tipo === "JPG" || tipo === "PNG") return <ImageIcon className="w-5 h-5 text-secondary" />;
   return <FileText className="w-5 h-5 text-muted-foreground" />;
 }
+
+function SLAStat({ label, value, sub, icon: Icon, accent }: { label: string; value: string; sub: string; icon: any; accent: "primary" | "info" | "success" | "warning" | "destructive" | "muted" }) {
+  const map: Record<string, string> = {
+    primary: "bg-primary/10 text-primary border-primary/20",
+    info: "bg-info/10 text-info border-info/20",
+    success: "bg-success/10 text-success border-success/20",
+    warning: "bg-warning/10 text-warning border-warning/20",
+    destructive: "bg-destructive/10 text-destructive border-destructive/30",
+    muted: "bg-muted text-muted-foreground border-border",
+  };
+  return (
+    <div className="bg-card border border-border rounded-lg p-3 flex items-center gap-3">
+      <div className={`w-9 h-9 rounded-md border flex items-center justify-center shrink-0 ${map[accent]}`}>
+        <Icon className="w-4 h-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</div>
+        <div className="text-sm font-display font-semibold truncate" title={value}>{value}</div>
+        <div className="text-[10px] text-muted-foreground truncate" title={sub}>{sub}</div>
+      </div>
+    </div>
+  );
+}
