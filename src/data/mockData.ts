@@ -260,7 +260,7 @@ export const imoveis: Imovel[] = seeds.map((s, i) => {
 });
 
 // ───────────────── Pontos (banco) ─────────────────
-export const pontos: Ponto[] = imoveis.flatMap((im) =>
+const pontosVinculados: Ponto[] = imoveis.flatMap((im) =>
   im.vertices.map((v, idx) => ({
     id: `p-${im.id}-${idx}`,
     codigo: v.codigo,
@@ -322,6 +322,8 @@ const pontosAvulsos: Ponto[] = avulsosSeed.map((a, idx) => ({
   municipio: a.mun,
 }));
 
+export const pontos: Ponto[] = [...pontosAvulsos, ...pontosVinculados];
+
 // ───────────────── Documentos ─────────────────
 const tiposDoc = [
   { nome: "Matrícula atualizada", cat: "imovel", tipo: "PDF", tam: "412 KB" },
@@ -358,3 +360,23 @@ export const historico: HistoricoEntry[] = imoveis.flatMap((im) => [
 ]);
 
 export const municipiosUnicos = Array.from(new Set(imoveis.map((i) => `${i.municipio}/${i.estado}`)));
+export const responsaveisUnicos = Array.from(new Set(imoveis.map((i) => i.responsavelTecnico)));
+
+// Helpers de SLA / prazos
+export function diasRestantes(dataPrevisao: string): number {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const prev = new Date(dataPrevisao + "T00:00:00");
+  return Math.round((prev.getTime() - hoje.getTime()) / 86400000);
+}
+
+export function slaInfo(im: Imovel): { dias: number; vencido: boolean; proximo: boolean; rotulo: string } {
+  if (im.status === "concluido") return { dias: 0, vencido: false, proximo: false, rotulo: "Entregue" };
+  const dias = diasRestantes(im.dataPrevisao);
+  return {
+    dias,
+    vencido: dias < 0,
+    proximo: dias >= 0 && dias <= 14,
+    rotulo: dias < 0 ? `${Math.abs(dias)}d em atraso` : dias === 0 ? "Vence hoje" : `${dias}d restantes`,
+  };
+}
