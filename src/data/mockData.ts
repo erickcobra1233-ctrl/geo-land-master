@@ -208,6 +208,13 @@ const seeds: ImovelSeed[] = [
   { nome: "Faz. Esperança", mun: "Jataí", comarca: "Jataí", uf: "GO", centro: [-17.8806, -51.7142], w: 6.1, h: 4.8, areaHa: 2341.07, status: "documentacao", progresso: 65, cliente: 4 },
   { nome: "Sítio Aroeira", mun: "Sorriso", comarca: "Sorriso", uf: "MT", centro: [-12.5102, -55.7589], w: 1.2, h: 0.9, areaHa: 98.42, status: "pendente", progresso: 25, cliente: 0 },
   { nome: "Faz. Vale do Sol", mun: "Rio Verde", comarca: "Rio Verde", uf: "GO", centro: [-17.7521, -50.9802], w: 3.8, h: 3.0, areaHa: 1024.55, status: "sigef", progresso: 81, cliente: 1 },
+  { nome: "Faz. Barra Mansa", mun: "Sinop", comarca: "Sinop", uf: "MT", centro: [-11.8604, -55.5021], w: 5.6, h: 4.3, areaHa: 2104.30, status: "campo", progresso: 12, cliente: 0 },
+  { nome: "Sítio das Palmeiras", mun: "Dourados", comarca: "Dourados", uf: "MS", centro: [-22.1840, -54.8632], w: 1.4, h: 1.1, areaHa: 142.66, status: "documentacao", progresso: 71, cliente: 3 },
+  { nome: "Faz. Santa Helena", mun: "Jataí", comarca: "Jataí", uf: "GO", centro: [-17.9204, -51.6608], w: 4.2, h: 3.4, areaHa: 1432.18, status: "conferencia", progresso: 49, cliente: 4 },
+  { nome: "Faz. Riacho Doce", mun: "Patrocínio", comarca: "Patrocínio", uf: "MG", centro: [-18.9405, -46.9938], w: 3.1, h: 2.5, areaHa: 712.40, status: "processamento", progresso: 38, cliente: 2 },
+  { nome: "Sítio Boa Esperança II", mun: "Rio Verde", comarca: "Rio Verde", uf: "GO", centro: [-17.8230, -50.9012], w: 1.6, h: 1.3, areaHa: 187.55, status: "pendente", progresso: 8, cliente: 1 },
+  { nome: "Faz. Cristalina", mun: "Sorriso", comarca: "Sorriso", uf: "MT", centro: [-12.6210, -55.7402], w: 4.8, h: 3.7, areaHa: 1654.92, status: "sigef", progresso: 85, cliente: 0 },
+  { nome: "Faz. Ponta Verde", mun: "Sinop", comarca: "Sinop", uf: "MT", centro: [-11.9022, -55.4630], w: 3.2, h: 2.6, areaHa: 768.21, status: "cartorio", progresso: 95, cliente: 0 },
 ];
 
 export const imoveis: Imovel[] = seeds.map((s, i) => {
