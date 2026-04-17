@@ -1,4 +1,4 @@
-import { Bell, Search, Plus, HelpCircle, MapPin, Layers, User2, FileText } from "lucide-react";
+import { Bell, Search, Plus, HelpCircle, MapPin, Layers, User2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
