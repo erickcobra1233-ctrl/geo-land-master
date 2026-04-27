@@ -1,16 +1,32 @@
-import { Bell, Search, Plus, HelpCircle, MapPin, Layers, User2 } from "lucide-react";
+import { Bell, Search, Plus, HelpCircle, MapPin, Layers, User2, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import { useGeoStore } from "@/store/useGeoStore";
 import { useNavigate } from "react-router-dom";
+import { useImoveis } from "@/hooks/useImoveis";
+import { useClientes } from "@/hooks/useClientes";
+import { ImovelFormDialog } from "@/components/forms/ImovelFormDialog";
+import { getStoredUser, logout } from "@/services/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Topbar() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const [novoImovelOpen, setNovoImovelOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { imoveis, pontos, clientes } = useGeoStore();
+  const { pontos } = useGeoStore();
+  const { data: imoveis = [] } = useImoveis();
+  const { data: clientes = [] } = useClientes();
   const navigate = useNavigate();
+  const user = getStoredUser();
 
   // Atalho ⌘K / Ctrl+K
   useEffect(() => {
@@ -129,16 +145,45 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
-        <Button variant="ghost" size="icon" className="text-muted-foreground"><HelpCircle className="w-4 h-4" /></Button>
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground">
+        <Button variant="ghost" size="icon" className="text-muted-foreground" title="Ajuda">
+          <HelpCircle className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="relative text-muted-foreground" title="Notificações">
           <Bell className="w-4 h-4" />
           <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" />
         </Button>
         <div className="h-6 w-px bg-border mx-1" />
-        <Button className="gap-2 bg-primary hover:bg-primary/90">
+        <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => setNovoImovelOpen(true)}>
           <Plus className="w-4 h-4" /> Novo Imóvel
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-muted-foreground" title="Conta">
+              <User2 className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+              <div className="text-xs">{user?.nome || "Usuário"}</div>
+              <div className="text-[10px] font-normal text-muted-foreground truncate">
+                {user?.email || "—"}
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                logout();
+                navigate("/login", { replace: true });
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              <LogOut className="w-4 h-4 mr-2" /> Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <ImovelFormDialog open={novoImovelOpen} onOpenChange={setNovoImovelOpen} />
     </header>
   );
 }
