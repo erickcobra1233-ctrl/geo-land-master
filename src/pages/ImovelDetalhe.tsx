@@ -69,8 +69,8 @@ export default function ImovelDetalhe() {
     navigate("/imoveis");
   }
 
-  const vertices = im.vertices || [];
-  const confrontantes = im.confrontantes || [];
+  const vertices = vertices || [];
+  const confrontantes = confrontantes || [];
   const docs = documentos.filter((d) => d.imovelId === im.id);
   const hist = historico.filter((h) => h.imovelId === im.id);
   const sla = slaInfo(im);
@@ -123,7 +123,7 @@ export default function ImovelDetalhe() {
       {/* Status bar — SLA e indicadores operacionais */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
         <SLAStat label="Prazo" value={sla.rotulo} icon={sla.vencido ? AlertTriangle : sla.proximo ? Clock : Calendar} accent={sla.vencido ? "destructive" : sla.proximo ? "warning" : "muted"} sub={`prev. ${format(parseISO(im.dataPrevisao), "dd/MM/yyyy")}`} />
-        <SLAStat label="Vértices" value={String(im.vertices.length)} icon={FileSpreadsheet} accent="primary" sub={`${im.confrontantes.length} confrontantes`} />
+        <SLAStat label="Vértices" value={String(vertices.length)} icon={FileSpreadsheet} accent="primary" sub={`${confrontantes.length} confrontantes`} />
         <SLAStat label="Documentos" value={`${docsConferidos}/${docs.length}`} icon={CheckCircle2} accent={docsPendentes > 0 ? "warning" : "success"} sub={`${docsPendentes} pendentes`} />
         <SLAStat label="Progresso" value={`${im.progresso}%`} icon={Calendar} accent="info" sub={`início ${format(parseISO(im.dataInicio), "dd/MM/yyyy")}`} />
         <SLAStat label="Situação" value={im.situacao} icon={CheckCircle2} accent="muted" sub={im.notasInternas ? "notas internas" : "—"} />
@@ -187,7 +187,7 @@ export default function ImovelDetalhe() {
             <div className="p-4 border-t border-border flex flex-wrap gap-4 text-xs">
               <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-primary/60 border border-primary" /> Polígono do imóvel</div>
               <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-info" /> Vértices</div>
-              <div className="ml-auto text-muted-foreground font-mono">{im.vertices.length} vértices · perímetro estimado</div>
+              <div className="ml-auto text-muted-foreground font-mono">{vertices.length} vértices · perímetro estimado</div>
             </div>
           </Card>
         </TabsContent>
@@ -212,7 +212,7 @@ export default function ImovelDetalhe() {
                   </tr>
                 </thead>
                 <tbody className="font-mono">
-                  {im.vertices.map((v) => (
+                  {vertices.map((v) => (
                     <tr key={v.id} className="border-b border-border hover:bg-muted/40">
                       <td className="px-4 py-2.5 font-semibold text-primary">{v.codigo}</td>
                       <td className="px-4 py-2.5"><span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">{v.tipo}</span></td>
@@ -246,7 +246,7 @@ export default function ImovelDetalhe() {
                 </tr>
               </thead>
               <tbody>
-                {im.confrontantes.map((c) => (
+                {confrontantes.map((c) => (
                   <tr key={c.id} className="border-b border-border hover:bg-muted/40">
                     <td className="px-4 py-3 font-medium">{c.nome}</td>
                     <td className="px-4 py-3"><span className="px-2 py-0.5 bg-muted rounded text-xs">{c.tipoDivisa}</span></td>
