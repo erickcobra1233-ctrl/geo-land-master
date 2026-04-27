@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGeoStore } from "@/store/useGeoStore";
 import { PageHeader } from "@/components/PageHeader";
@@ -6,27 +7,66 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { MapView } from "@/components/MapView";
-import { ArrowLeft, Pencil, Download, FileText, Image as ImageIcon, FileSpreadsheet, FileArchive, Eye, AlertTriangle, Clock, Calendar, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Pencil, Download, FileText, Image as ImageIcon, FileSpreadsheet, FileArchive, Eye, AlertTriangle, Clock, Calendar, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { slaInfo } from "@/data/mockData";
 import { toast } from "sonner";
+import { useImovel, useDeleteImovel, useImoveis } from "@/hooks/useImoveis";
+import { ImovelFormDialog } from "@/components/forms/ImovelFormDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ImovelDetalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { imoveis, documentos, historico } = useGeoStore();
-  const im = imoveis.find((x) => x.id === id);
+  const { documentos, historico } = useGeoStore();
+
+  // Tenta buscar pelo backend; se ainda não estiver cacheado, cai pra lista
+  const { data: imRemote, isLoading, isError, error } = useImovel(id);
+  const { data: imoveisList = [] } = useImoveis();
+  const im = imRemote || imoveisList.find((x) => x.id === id);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const deleteMut = useDeleteImovel();
+
+  if (isLoading && !im) {
+    return (
+      <div className="p-6">
+        <Card className="p-8 text-center text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" /> Carregando imóvel...
+        </Card>
+      </div>
+    );
+  }
 
   if (!im) {
     return (
       <div className="p-6">
         <Card className="p-8 text-center">
-          <div className="text-muted-foreground">Imóvel não encontrado.</div>
+          <div className="text-muted-foreground">
+            {isError ? `Erro: ${(error as Error).message}` : "Imóvel não encontrado."}
+          </div>
           <Button onClick={() => navigate("/imoveis")} className="mt-4">Voltar</Button>
         </Card>
       </div>
     );
+  }
+
+  async function handleDelete() {
+    if (!im) return;
+    await deleteMut.mutateAsync(im.id);
+    setConfirmDelete(false);
+    navigate("/imoveis");
   }
 
   const docs = documentos.filter((d) => d.imovelId === im.id);
