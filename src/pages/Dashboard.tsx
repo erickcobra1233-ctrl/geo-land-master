@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
 import { useGeoStore } from "@/store/useGeoStore";
+import { useImoveis } from "@/hooks/useImoveis";
 import { MapView } from "@/components/MapView";
 import { StatusBadge } from "@/components/StatusBadge";
 import { STATUS_LABEL, type ProcessStatus } from "@/data/mockData";
@@ -20,7 +21,8 @@ const STATUS_HEX: Record<ProcessStatus, string> = {
 };
 
 export default function Dashboard() {
-  const { imoveis, pontos, documentos } = useGeoStore();
+  const { pontos, documentos } = useGeoStore();
+  const { data: imoveis = [] } = useImoveis();
   const navigate = useNavigate();
 
   const totalImoveis = imoveis.length;

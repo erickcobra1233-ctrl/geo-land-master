@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { useGeoStore } from "@/store/useGeoStore";
+import { useImoveis } from "@/hooks/useImoveis";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +22,8 @@ const CATS = [
 ];
 
 export default function Documentos() {
-  const { documentos, imoveis } = useGeoStore();
+  const { documentos } = useGeoStore();
+  const { data: imoveis = [] } = useImoveis();
   const [cat, setCat] = useState("all");
   const [q, setQ] = useState("");
   const [imovel, setImovel] = useState("all");

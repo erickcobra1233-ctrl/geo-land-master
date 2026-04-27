@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { useGeoStore } from "@/store/useGeoStore";
+import { useImoveis, useUpdateImovelStatus } from "@/hooks/useImoveis";
 import { Card } from "@/components/ui/card";
 import { STATUS_LABEL, type ProcessStatus, slaInfo, responsaveisUnicos } from "@/data/mockData";
 import { Calendar, User2, MapPin, AlertTriangle, Clock } from "lucide-react";
@@ -24,7 +25,8 @@ const COL_BG: Record<ProcessStatus, string> = {
 };
 
 export default function Processos() {
-  const { imoveis } = useGeoStore();
+  const { data: imoveis = [] } = useImoveis();
+  const updateStatusMut = useUpdateImovelStatus();
   const [resp, setResp] = useState("all");
   const [q, setQ] = useState("");
 
