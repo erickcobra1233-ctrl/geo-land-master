@@ -69,8 +69,8 @@ export default function ImovelDetalhe() {
     navigate("/imoveis");
   }
 
-  const vertices = vertices || [];
-  const confrontantes = confrontantes || [];
+  const vertices = im.vertices || [];
+  const confrontantes = im.confrontantes || [];
   const docs = documentos.filter((d) => d.imovelId === im.id);
   const hist = historico.filter((h) => h.imovelId === im.id);
   const sla = slaInfo(im);
