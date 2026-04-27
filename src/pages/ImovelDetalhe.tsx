@@ -69,6 +69,8 @@ export default function ImovelDetalhe() {
     navigate("/imoveis");
   }
 
+  const vertices = im.vertices || [];
+  const confrontantes = im.confrontantes || [];
   const docs = documentos.filter((d) => d.imovelId === im.id);
   const hist = historico.filter((h) => h.imovelId === im.id);
   const sla = slaInfo(im);
@@ -76,15 +78,16 @@ export default function ImovelDetalhe() {
   const docsConferidos = docs.filter((d) => d.status === "conferido").length;
 
   function exportVerticesCSV() {
+    if (!im) return;
     const header = ["codigo", "tipo", "leste", "norte", "latitude", "longitude", "altitude", "datum", "sistema", "metodo", "precisao_m", "data"];
-    const rows = im!.vertices.map((v) => [v.codigo, v.tipo, v.leste, v.norte, v.latitude, v.longitude, v.altitude.toFixed(2), v.datum, v.sistema, v.metodo, v.precisao.toFixed(3), v.data]);
+    const rows = vertices.map((v) => [v.codigo, v.tipo, v.leste, v.norte, v.latitude, v.longitude, v.altitude.toFixed(2), v.datum, v.sistema, v.metodo, v.precisao.toFixed(3), v.data]);
     const csv = [header, ...rows].map((r) => r.join(";")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `vertices-${im!.matricula.replace(/\W/g, "-")}.csv`; a.click();
+    a.href = url; a.download = `vertices-${im.matricula.replace(/\W/g, "-")}.csv`; a.click();
     URL.revokeObjectURL(url);
-    toast.success(`${im!.vertices.length} vértices exportados`);
+    toast.success(`${vertices.length} vértices exportados`);
   }
 
   return (
@@ -99,8 +102,20 @@ export default function ImovelDetalhe() {
         actions={
           <>
             <StatusBadge status={im.status} />
-            <Button variant="outline" size="sm" className="gap-2" onClick={exportVerticesCSV}><Download className="w-4 h-4" /> Exportar vértices</Button>
-            <Button size="sm" className="gap-2"><Pencil className="w-4 h-4" /> Editar</Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={exportVerticesCSV}>
+              <Download className="w-4 h-4" /> Exportar vértices
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-destructive hover:text-destructive"
+              onClick={() => setConfirmDelete(true)}
+            >
+              <Trash2 className="w-4 h-4" /> Excluir
+            </Button>
+            <Button size="sm" className="gap-2" onClick={() => setEditOpen(true)}>
+              <Pencil className="w-4 h-4" /> Editar
+            </Button>
           </>
         }
       />
@@ -118,8 +133,8 @@ export default function ImovelDetalhe() {
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="info">Informações</TabsTrigger>
           <TabsTrigger value="mapa">Mapa do Imóvel</TabsTrigger>
-          <TabsTrigger value="vertices">Pontos & Vértices ({im.vertices.length})</TabsTrigger>
-          <TabsTrigger value="confrontantes">Confrontantes ({im.confrontantes.length})</TabsTrigger>
+          <TabsTrigger value="vertices">Pontos & Vértices ({vertices.length})</TabsTrigger>
+          <TabsTrigger value="confrontantes">Confrontantes ({confrontantes.length})</TabsTrigger>
           <TabsTrigger value="documentos">Documentos ({docs.length})</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
