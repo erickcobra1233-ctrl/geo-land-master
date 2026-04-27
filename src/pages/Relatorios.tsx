@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useGeoStore } from "@/store/useGeoStore";
+import { useImoveis } from "@/hooks/useImoveis";
 import { FileBarChart, MapPinned, Building2, ListChecks, UserCheck, AlertTriangle, Download } from "lucide-react";
 
 const RELATORIOS = [
@@ -14,7 +15,8 @@ const RELATORIOS = [
 ];
 
 export default function Relatorios() {
-  const { imoveis, pontos, documentos } = useGeoStore();
+  const { pontos, documentos } = useGeoStore();
+  const { data: imoveis = [] } = useImoveis();
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto">

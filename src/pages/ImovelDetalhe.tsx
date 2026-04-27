@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGeoStore } from "@/store/useGeoStore";
 import { PageHeader } from "@/components/PageHeader";
@@ -6,29 +7,70 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { MapView } from "@/components/MapView";
-import { ArrowLeft, Pencil, Download, FileText, Image as ImageIcon, FileSpreadsheet, FileArchive, Eye, AlertTriangle, Clock, Calendar, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Pencil, Download, FileText, Image as ImageIcon, FileSpreadsheet, FileArchive, Eye, AlertTriangle, Clock, Calendar, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { slaInfo } from "@/data/mockData";
 import { toast } from "sonner";
+import { useImovel, useDeleteImovel, useImoveis } from "@/hooks/useImoveis";
+import { ImovelFormDialog } from "@/components/forms/ImovelFormDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ImovelDetalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { imoveis, documentos, historico } = useGeoStore();
-  const im = imoveis.find((x) => x.id === id);
+  const { documentos, historico } = useGeoStore();
+
+  // Tenta buscar pelo backend; se ainda não estiver cacheado, cai pra lista
+  const { data: imRemote, isLoading, isError, error } = useImovel(id);
+  const { data: imoveisList = [] } = useImoveis();
+  const im = imRemote || imoveisList.find((x) => x.id === id);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const deleteMut = useDeleteImovel();
+
+  if (isLoading && !im) {
+    return (
+      <div className="p-6">
+        <Card className="p-8 text-center text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" /> Carregando imóvel...
+        </Card>
+      </div>
+    );
+  }
 
   if (!im) {
     return (
       <div className="p-6">
         <Card className="p-8 text-center">
-          <div className="text-muted-foreground">Imóvel não encontrado.</div>
+          <div className="text-muted-foreground">
+            {isError ? `Erro: ${(error as Error).message}` : "Imóvel não encontrado."}
+          </div>
           <Button onClick={() => navigate("/imoveis")} className="mt-4">Voltar</Button>
         </Card>
       </div>
     );
   }
 
+  async function handleDelete() {
+    if (!im) return;
+    await deleteMut.mutateAsync(im.id);
+    setConfirmDelete(false);
+    navigate("/imoveis");
+  }
+
+  const vertices = im.vertices || [];
+  const confrontantes = im.confrontantes || [];
   const docs = documentos.filter((d) => d.imovelId === im.id);
   const hist = historico.filter((h) => h.imovelId === im.id);
   const sla = slaInfo(im);
@@ -36,15 +78,16 @@ export default function ImovelDetalhe() {
   const docsConferidos = docs.filter((d) => d.status === "conferido").length;
 
   function exportVerticesCSV() {
+    if (!im) return;
     const header = ["codigo", "tipo", "leste", "norte", "latitude", "longitude", "altitude", "datum", "sistema", "metodo", "precisao_m", "data"];
-    const rows = im!.vertices.map((v) => [v.codigo, v.tipo, v.leste, v.norte, v.latitude, v.longitude, v.altitude.toFixed(2), v.datum, v.sistema, v.metodo, v.precisao.toFixed(3), v.data]);
+    const rows = vertices.map((v) => [v.codigo, v.tipo, v.leste, v.norte, v.latitude, v.longitude, v.altitude.toFixed(2), v.datum, v.sistema, v.metodo, v.precisao.toFixed(3), v.data]);
     const csv = [header, ...rows].map((r) => r.join(";")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `vertices-${im!.matricula.replace(/\W/g, "-")}.csv`; a.click();
+    a.href = url; a.download = `vertices-${im.matricula.replace(/\W/g, "-")}.csv`; a.click();
     URL.revokeObjectURL(url);
-    toast.success(`${im!.vertices.length} vértices exportados`);
+    toast.success(`${vertices.length} vértices exportados`);
   }
 
   return (
@@ -59,8 +102,20 @@ export default function ImovelDetalhe() {
         actions={
           <>
             <StatusBadge status={im.status} />
-            <Button variant="outline" size="sm" className="gap-2" onClick={exportVerticesCSV}><Download className="w-4 h-4" /> Exportar vértices</Button>
-            <Button size="sm" className="gap-2"><Pencil className="w-4 h-4" /> Editar</Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={exportVerticesCSV}>
+              <Download className="w-4 h-4" /> Exportar vértices
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-destructive hover:text-destructive"
+              onClick={() => setConfirmDelete(true)}
+            >
+              <Trash2 className="w-4 h-4" /> Excluir
+            </Button>
+            <Button size="sm" className="gap-2" onClick={() => setEditOpen(true)}>
+              <Pencil className="w-4 h-4" /> Editar
+            </Button>
           </>
         }
       />
@@ -68,7 +123,7 @@ export default function ImovelDetalhe() {
       {/* Status bar — SLA e indicadores operacionais */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
         <SLAStat label="Prazo" value={sla.rotulo} icon={sla.vencido ? AlertTriangle : sla.proximo ? Clock : Calendar} accent={sla.vencido ? "destructive" : sla.proximo ? "warning" : "muted"} sub={`prev. ${format(parseISO(im.dataPrevisao), "dd/MM/yyyy")}`} />
-        <SLAStat label="Vértices" value={String(im.vertices.length)} icon={FileSpreadsheet} accent="primary" sub={`${im.confrontantes.length} confrontantes`} />
+        <SLAStat label="Vértices" value={String(vertices.length)} icon={FileSpreadsheet} accent="primary" sub={`${confrontantes.length} confrontantes`} />
         <SLAStat label="Documentos" value={`${docsConferidos}/${docs.length}`} icon={CheckCircle2} accent={docsPendentes > 0 ? "warning" : "success"} sub={`${docsPendentes} pendentes`} />
         <SLAStat label="Progresso" value={`${im.progresso}%`} icon={Calendar} accent="info" sub={`início ${format(parseISO(im.dataInicio), "dd/MM/yyyy")}`} />
         <SLAStat label="Situação" value={im.situacao} icon={CheckCircle2} accent="muted" sub={im.notasInternas ? "notas internas" : "—"} />
@@ -78,8 +133,8 @@ export default function ImovelDetalhe() {
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="info">Informações</TabsTrigger>
           <TabsTrigger value="mapa">Mapa do Imóvel</TabsTrigger>
-          <TabsTrigger value="vertices">Pontos & Vértices ({im.vertices.length})</TabsTrigger>
-          <TabsTrigger value="confrontantes">Confrontantes ({im.confrontantes.length})</TabsTrigger>
+          <TabsTrigger value="vertices">Pontos & Vértices ({vertices.length})</TabsTrigger>
+          <TabsTrigger value="confrontantes">Confrontantes ({confrontantes.length})</TabsTrigger>
           <TabsTrigger value="documentos">Documentos ({docs.length})</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
@@ -132,7 +187,7 @@ export default function ImovelDetalhe() {
             <div className="p-4 border-t border-border flex flex-wrap gap-4 text-xs">
               <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-primary/60 border border-primary" /> Polígono do imóvel</div>
               <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-info" /> Vértices</div>
-              <div className="ml-auto text-muted-foreground font-mono">{im.vertices.length} vértices · perímetro estimado</div>
+              <div className="ml-auto text-muted-foreground font-mono">{vertices.length} vértices · perímetro estimado</div>
             </div>
           </Card>
         </TabsContent>
@@ -157,7 +212,7 @@ export default function ImovelDetalhe() {
                   </tr>
                 </thead>
                 <tbody className="font-mono">
-                  {im.vertices.map((v) => (
+                  {vertices.map((v) => (
                     <tr key={v.id} className="border-b border-border hover:bg-muted/40">
                       <td className="px-4 py-2.5 font-semibold text-primary">{v.codigo}</td>
                       <td className="px-4 py-2.5"><span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">{v.tipo}</span></td>
@@ -191,7 +246,7 @@ export default function ImovelDetalhe() {
                 </tr>
               </thead>
               <tbody>
-                {im.confrontantes.map((c) => (
+                {confrontantes.map((c) => (
                   <tr key={c.id} className="border-b border-border hover:bg-muted/40">
                     <td className="px-4 py-3 font-medium">{c.nome}</td>
                     <td className="px-4 py-3"><span className="px-2 py-0.5 bg-muted rounded text-xs">{c.tipoDivisa}</span></td>
@@ -256,6 +311,29 @@ export default function ImovelDetalhe() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ImovelFormDialog open={editOpen} onOpenChange={setEditOpen} imovel={im} />
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir imóvel?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{im.nome}</strong> (matrícula {im.matricula}) será removido do banco. Essa ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMut.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteMut.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMut.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
