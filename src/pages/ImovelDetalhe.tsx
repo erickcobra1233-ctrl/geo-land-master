@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGeoStore } from "@/store/useGeoStore";
+import { useDocumentos, useHistorico } from "@/hooks/useDocumentos";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,7 +28,8 @@ import {
 export default function ImovelDetalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { documentos, historico } = useGeoStore();
+  const { data: documentos = [] } = useDocumentos(id);
+  const { data: historico = [] } = useHistorico(id);
 
   // Tenta buscar pelo backend; se ainda não estiver cacheado, cai pra lista
   const { data: imRemote, isLoading, isError, error } = useImovel(id);
