@@ -43,6 +43,8 @@ export function useCreateImovel() {
   return useMutation({
     mutationFn: async (data: Partial<Imovel>) => {
       const row = imovelToRow(data) as ImovelRow;
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user?.id) row.created_by = userData.user.id;
       const { data: created, error } = await supabase.from("imoveis").insert(row).select().single();
       if (error) throw error;
       return rowToImovel(created);

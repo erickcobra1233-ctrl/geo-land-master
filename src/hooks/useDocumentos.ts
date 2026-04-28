@@ -25,6 +25,7 @@ export function useCreateDocumento() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: { nome: string; categoria?: string; tipo?: string; tamanho?: string; status?: string; imovelId?: string }) => {
+      const { data: userData } = await supabase.auth.getUser();
       const { data: doc, error } = await supabase
         .from("documentos")
         .insert({
@@ -34,6 +35,7 @@ export function useCreateDocumento() {
           tamanho: data.tamanho || "",
           status: data.status || "pendente",
           imovel_id: data.imovelId || null,
+          created_by: userData.user?.id || null,
         })
         .select()
         .single();
