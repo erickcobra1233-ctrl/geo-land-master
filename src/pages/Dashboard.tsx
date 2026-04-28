@@ -1,9 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
-import { useGeoStore } from "@/store/useGeoStore";
 import { useImoveis } from "@/hooks/useImoveis";
+import { usePontos } from "@/hooks/usePontos";
+import { useDocumentos } from "@/hooks/useDocumentos";
 import { MapView } from "@/components/MapView";
 import { StatusBadge } from "@/components/StatusBadge";
+import { SeedDataCard } from "@/components/SeedDataCard";
 import { STATUS_LABEL, type ProcessStatus } from "@/data/mockData";
 import {
   Layers, MapPinned, CheckCircle2, AlertTriangle, TrendingUp, Clock, FileWarning, Activity,
@@ -21,9 +23,12 @@ const STATUS_HEX: Record<ProcessStatus, string> = {
 };
 
 export default function Dashboard() {
-  const { pontos, documentos } = useGeoStore();
-  const { data: imoveis = [] } = useImoveis();
+  const { data: imoveis = [], isLoading } = useImoveis();
+  const { data: pontos = [] } = usePontos();
+  const { data: documentos = [] } = useDocumentos();
   const navigate = useNavigate();
+
+  const isEmpty = !isLoading && imoveis.length === 0;
 
   const totalImoveis = imoveis.length;
   const emAndamento = imoveis.filter((i) => !["concluido", "pendente"].includes(i.status)).length;
@@ -66,11 +71,13 @@ export default function Dashboard() {
         subtitle="Indicadores operacionais do escritório de georreferenciamento"
       />
 
+      {isEmpty && <SeedDataCard />}
+
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <KpiCard icon={Layers} label="Imóveis" value={totalImoveis} accent="primary" trend={`${areaTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} ha total`} />
         <KpiCard icon={Activity} label="Em andamento" value={emAndamento} accent="info" trend="ativos" />
-        <KpiCard icon={CheckCircle2} label="Concluídos" value={concluidos} accent="success" trend={`${Math.round((concluidos / totalImoveis) * 100)}% do total`} />
+        <KpiCard icon={CheckCircle2} label="Concluídos" value={concluidos} accent="success" trend={totalImoveis ? `${Math.round((concluidos / totalImoveis) * 100)}% do total` : "0%"} />
         <KpiCard icon={AlertTriangle} label="Prazos vencidos" value={vencidos} accent="destructive" trend={`${proximos} próximos`} />
         <KpiCard icon={MapPinned} label="Pontos no banco" value={pontos.length} accent="secondary" trend="reutilizáveis" />
       </div>

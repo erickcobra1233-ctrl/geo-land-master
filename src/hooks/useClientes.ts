@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { clientesApi, type ClienteInput } from "@/services/api";
+import { supabase } from "@/integrations/supabase/client";
+import { rowToCliente, clienteToRow } from "@/services/mappers";
 import type { Cliente } from "@/data/mockData";
 
 export const clientesKeys = {
@@ -12,25 +13,31 @@ export const clientesKeys = {
 export function useClientes() {
   return useQuery({
     queryKey: clientesKeys.list(),
-    queryFn: () => clientesApi.list(),
-  });
-}
-
-export function useCliente(id: string | undefined) {
-  return useQuery({
-    queryKey: clientesKeys.detail(id || ""),
-    queryFn: () => clientesApi.get(id!),
-    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clientes")
+        .select("*, imoveis(id)")
+        .order("nome");
+      if (error) throw error;
+      return (data || []).map((r: any) => ({
+        ...rowToCliente(r),
+        imoveisIds: (r.imoveis || []).map((x: any) => x.id),
+      }));
+    },
   });
 }
 
 export function useCreateCliente() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: ClienteInput) => clientesApi.create(data),
+    mutationFn: async (data: Partial<Cliente>) => {
+      const { data: c, error } = await supabase.from("clientes").insert(clienteToRow(data)).select().single();
+      if (error) throw error;
+      return rowToCliente(c);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: clientesKeys.all });
-      toast.success("Cliente criado com sucesso");
+      toast.success("Cliente criado");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -39,11 +46,13 @@ export function useCreateCliente() {
 export function useUpdateCliente() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: ClienteInput }) =>
-      clientesApi.update(id, data),
-    onSuccess: (c: Cliente) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Cliente> }) => {
+      const { data: c, error } = await supabase.from("clientes").update(clienteToRow(data)).eq("id", id).select().single();
+      if (error) throw error;
+      return rowToCliente(c);
+    },
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: clientesKeys.all });
-      qc.invalidateQueries({ queryKey: clientesKeys.detail(c.id) });
       toast.success("Cliente atualizado");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -53,7 +62,10 @@ export function useUpdateCliente() {
 export function useDeleteCliente() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => clientesApi.remove(id),
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("clientes").delete().eq("id", id);
+      if (error) throw error;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: clientesKeys.all });
       toast.success("Cliente excluído");

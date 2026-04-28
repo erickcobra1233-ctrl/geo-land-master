@@ -1,17 +1,23 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { useGeoStore } from "@/store/useGeoStore";
+import { usePontos, useCreatePonto, useDeletePonto } from "@/hooks/usePontos";
+import { useImoveis } from "@/hooks/useImoveis";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Upload, MapPinned, Download, Link2, Unlink } from "lucide-react";
+import { Search, Plus, Upload, MapPinned, Download, Link2, Unlink, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapView } from "@/components/MapView";
-import { responsaveisUnicos } from "@/data/mockData";
 import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export default function Pontos() {
-  const { pontos, imoveis } = useGeoStore();
+  const { data: pontos = [] } = usePontos();
+  const { data: imoveis = [] } = useImoveis();
+  const createPonto = useCreatePonto();
+  const deletePonto = useDeletePonto();
+  const [novoOpen, setNovoOpen] = useState(false);
   const [q, setQ] = useState("");
   const [tipo, setTipo] = useState("all");
   const [mun, setMun] = useState("all");
@@ -52,9 +58,8 @@ export default function Pontos() {
         subtitle={`${filtered.length} de ${pontos.length} pontos · ${stats.avulsos} avulsos reutilizáveis · ${stats.refer} RN/IBGE`}
         actions={
           <>
-            <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" /> Exportar</Button>
-            <Button variant="outline" size="sm" className="gap-2"><Upload className="w-4 h-4" /> Importar CSV</Button>
-            <Button size="sm" className="gap-2"><Plus className="w-4 h-4" /> Novo ponto</Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => exportarCSV(filtered)}><Download className="w-4 h-4" /> Exportar</Button>
+            <Button size="sm" className="gap-2" onClick={() => setNovoOpen(true)}><Plus className="w-4 h-4" /> Novo ponto</Button>
           </>
         }
       />
@@ -113,7 +118,7 @@ export default function Pontos() {
               <SelectTrigger><SelectValue placeholder="Operador" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos operadores</SelectItem>
-                {responsaveisUnicos.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                {Array.from(new Set(pontos.map((p) => p.operador).filter(Boolean))).map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -144,6 +149,7 @@ export default function Pontos() {
                 <th className="text-left px-3 py-2.5">Município</th>
                 <th className="text-right px-3 py-2.5">Prec. H (m)</th>
                 <th className="text-left px-3 py-2.5">Operador</th>
+                <th className="text-right px-3 py-2.5 w-10"></th>
               </tr>
             </thead>
             <tbody className="font-mono">
@@ -171,11 +177,16 @@ export default function Pontos() {
                     <td className="px-3 py-2 font-sans">{p.municipio}</td>
                     <td className="px-3 py-2 text-right">{p.precisaoH.toFixed(3)}</td>
                     <td className="px-3 py-2 font-sans text-muted-foreground">{p.operador.replace("Eng. ", "")}</td>
+                    <td className="px-2 py-2 text-right">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => { if (confirm(`Excluir ponto ${p.codigo}?`)) deletePonto.mutate(p.id); }}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </td>
                   </tr>
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={12} className="text-center py-10 text-muted-foreground font-sans">Nenhum ponto corresponde aos filtros.</td></tr>
+                <tr><td colSpan={13} className="text-center py-10 text-muted-foreground font-sans">Nenhum ponto corresponde aos filtros.</td></tr>
               )}
             </tbody>
           </table>
@@ -186,6 +197,73 @@ export default function Pontos() {
           )}
         </div>
       </Card>
+
+      <NovoPontoDialog
+        open={novoOpen}
+        onOpenChange={setNovoOpen}
+        onSubmit={async (data) => { await createPonto.mutateAsync(data); setNovoOpen(false); }}
+        imoveis={imoveis}
+        saving={createPonto.isPending}
+      />
     </div>
   );
+}
+
+function exportarCSV(pontos: ReturnType<typeof usePontos>["data"] extends infer T ? (T extends undefined ? never : T) : never) {
+  if (!pontos || pontos.length === 0) return;
+  const head = ["codigo","nome","tipo","latitude","longitude","altitude","datum","sistema","precisao_h","operador","municipio"];
+  const rows = pontos.map((p) => [p.codigo,p.nome,p.tipo,p.latitude,p.longitude,p.altitude,p.datum,p.sistema,p.precisaoH,p.operador,p.municipio].join(","));
+  const csv = [head.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "pontos.csv"; a.click(); URL.revokeObjectURL(url);
+}
+
+function NovoPontoDialog({ open, onOpenChange, onSubmit, imoveis, saving }: any) {
+  const [form, setForm] = useState({ codigo: "", nome: "", tipo: "Marco", latitude: 0, longitude: 0, altitude: 0, datum: "SIRGAS 2000", sistema: "UTM 22S", metodo: "GNSS RTK", equipamento: "", municipio: "", operador: "", imovelId: "", precisaoH: 0.01, precisaoV: 0.02 });
+  function set<K extends keyof typeof form>(k: K, v: any) { setForm((s) => ({ ...s, [k]: v })); }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader><DialogTitle>Novo ponto</DialogTitle></DialogHeader>
+        <form onSubmit={(e) => { e.preventDefault(); onSubmit({ ...form, imovelId: form.imovelId || undefined }); }} className="grid grid-cols-2 gap-3">
+          <Field label="Código *"><Input required value={form.codigo} onChange={(e) => set("codigo", e.target.value)} className="font-mono" /></Field>
+          <Field label="Tipo">
+            <Select value={form.tipo} onValueChange={(v) => set("tipo", v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["Marco","Apoio","Levantamento","Referência","Auxiliar"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Nome" className="col-span-2"><Input value={form.nome} onChange={(e) => set("nome", e.target.value)} /></Field>
+          <Field label="Latitude"><Input type="number" step="0.000001" value={form.latitude} onChange={(e) => set("latitude", Number(e.target.value))} /></Field>
+          <Field label="Longitude"><Input type="number" step="0.000001" value={form.longitude} onChange={(e) => set("longitude", Number(e.target.value))} /></Field>
+          <Field label="Altitude (m)"><Input type="number" step="0.01" value={form.altitude} onChange={(e) => set("altitude", Number(e.target.value))} /></Field>
+          <Field label="Precisão H (m)"><Input type="number" step="0.001" value={form.precisaoH} onChange={(e) => set("precisaoH", Number(e.target.value))} /></Field>
+          <Field label="Datum"><Input value={form.datum} onChange={(e) => set("datum", e.target.value)} /></Field>
+          <Field label="Equipamento"><Input value={form.equipamento} onChange={(e) => set("equipamento", e.target.value)} /></Field>
+          <Field label="Município"><Input value={form.municipio} onChange={(e) => set("municipio", e.target.value)} /></Field>
+          <Field label="Operador"><Input value={form.operador} onChange={(e) => set("operador", e.target.value)} /></Field>
+          <Field label="Vincular ao imóvel" className="col-span-2">
+            <Select value={form.imovelId || "none"} onValueChange={(v) => set("imovelId", v === "none" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Nenhum (avulso)" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum (ponto avulso)</SelectItem>
+                {imoveis.map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+          <DialogFooter className="col-span-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Criar"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+  return <div className={className}><Label className="text-xs text-muted-foreground">{label}</Label><div className="mt-1">{children}</div></div>;
 }

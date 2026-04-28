@@ -2,12 +2,13 @@ import { Bell, Search, Plus, HelpCircle, MapPin, Layers, User2, LogOut } from "l
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
-import { useGeoStore } from "@/store/useGeoStore";
+import { usePontos } from "@/hooks/usePontos";
 import { useNavigate } from "react-router-dom";
 import { useImoveis } from "@/hooks/useImoveis";
 import { useClientes } from "@/hooks/useClientes";
 import { ImovelFormDialog } from "@/components/forms/ImovelFormDialog";
-import { getStoredUser, logout } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/services/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +23,11 @@ export function Topbar() {
   const [open, setOpen] = useState(false);
   const [novoImovelOpen, setNovoImovelOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { pontos } = useGeoStore();
+  const { data: pontos = [] } = usePontos();
   const { data: imoveis = [] } = useImoveis();
   const { data: clientes = [] } = useClientes();
   const navigate = useNavigate();
-  const user = getStoredUser();
+  const { user } = useAuth();
 
   // Atalho ⌘K / Ctrl+K
   useEffect(() => {
@@ -171,8 +172,8 @@ export function Topbar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => {
-                logout();
+              onClick={async () => {
+                await signOut();
                 navigate("/login", { replace: true });
               }}
               className="text-destructive focus:text-destructive"
