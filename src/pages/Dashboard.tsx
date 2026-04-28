@@ -1,9 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
-import { useGeoStore } from "@/store/useGeoStore";
 import { useImoveis } from "@/hooks/useImoveis";
+import { usePontos } from "@/hooks/usePontos";
+import { useDocumentos } from "@/hooks/useDocumentos";
 import { MapView } from "@/components/MapView";
 import { StatusBadge } from "@/components/StatusBadge";
+import { SeedDataCard } from "@/components/SeedDataCard";
 import { STATUS_LABEL, type ProcessStatus } from "@/data/mockData";
 import {
   Layers, MapPinned, CheckCircle2, AlertTriangle, TrendingUp, Clock, FileWarning, Activity,
@@ -21,9 +23,12 @@ const STATUS_HEX: Record<ProcessStatus, string> = {
 };
 
 export default function Dashboard() {
-  const { pontos, documentos } = useGeoStore();
-  const { data: imoveis = [] } = useImoveis();
+  const { data: imoveis = [], isLoading } = useImoveis();
+  const { data: pontos = [] } = usePontos();
+  const { data: documentos = [] } = useDocumentos();
   const navigate = useNavigate();
+
+  const isEmpty = !isLoading && imoveis.length === 0;
 
   const totalImoveis = imoveis.length;
   const emAndamento = imoveis.filter((i) => !["concluido", "pendente"].includes(i.status)).length;
