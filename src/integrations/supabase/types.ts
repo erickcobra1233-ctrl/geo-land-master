@@ -14,16 +14,404 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clientes: {
+        Row: {
+          cpf_cnpj: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          id: string
+          municipio: string | null
+          nome: string
+          obs: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          cpf_cnpj?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          municipio?: string | null
+          nome: string
+          obs?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cpf_cnpj?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          municipio?: string | null
+          nome?: string
+          obs?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documentos: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          created_by: string | null
+          data: string | null
+          id: string
+          imovel_id: string | null
+          nome: string
+          status: string | null
+          storage_path: string | null
+          tamanho: string | null
+          tipo: string | null
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: string | null
+          id?: string
+          imovel_id?: string | null
+          nome: string
+          status?: string | null
+          storage_path?: string | null
+          tamanho?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: string | null
+          id?: string
+          imovel_id?: string | null
+          nome?: string
+          status?: string | null
+          storage_path?: string | null
+          tamanho?: string | null
+          tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "imoveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico: {
+        Row: {
+          acao: string
+          created_by: string | null
+          data: string
+          id: string
+          imovel_id: string
+          obs: string | null
+          usuario: string | null
+        }
+        Insert: {
+          acao: string
+          created_by?: string | null
+          data?: string
+          id?: string
+          imovel_id: string
+          obs?: string | null
+          usuario?: string | null
+        }
+        Update: {
+          acao?: string
+          created_by?: string | null
+          data?: string
+          id?: string
+          imovel_id?: string
+          obs?: string | null
+          usuario?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "imoveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imoveis: {
+        Row: {
+          area_ha: number
+          area_m2: number
+          ccir: string | null
+          centro_lat: number | null
+          centro_lng: number | null
+          cliente_id: string | null
+          codigo_incra: string | null
+          comarca: string | null
+          confrontantes: Json | null
+          conjuge: string | null
+          cpf_cnpj: string | null
+          cpf_conjuge: string | null
+          created_at: string
+          created_by: string | null
+          data_inicio: string | null
+          data_previsao: string | null
+          equipe_campo: Json | null
+          estado: string | null
+          id: string
+          matricula: string
+          municipio: string | null
+          nome: string
+          notas_internas: string | null
+          obs: string | null
+          poligono: Json | null
+          progresso: number
+          proprietario_nome: string | null
+          responsavel_tecnico: string | null
+          situacao: string | null
+          status: string
+          updated_at: string
+          vertices: Json | null
+        }
+        Insert: {
+          area_ha?: number
+          area_m2?: number
+          ccir?: string | null
+          centro_lat?: number | null
+          centro_lng?: number | null
+          cliente_id?: string | null
+          codigo_incra?: string | null
+          comarca?: string | null
+          confrontantes?: Json | null
+          conjuge?: string | null
+          cpf_cnpj?: string | null
+          cpf_conjuge?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_inicio?: string | null
+          data_previsao?: string | null
+          equipe_campo?: Json | null
+          estado?: string | null
+          id?: string
+          matricula?: string
+          municipio?: string | null
+          nome: string
+          notas_internas?: string | null
+          obs?: string | null
+          poligono?: Json | null
+          progresso?: number
+          proprietario_nome?: string | null
+          responsavel_tecnico?: string | null
+          situacao?: string | null
+          status?: string
+          updated_at?: string
+          vertices?: Json | null
+        }
+        Update: {
+          area_ha?: number
+          area_m2?: number
+          ccir?: string | null
+          centro_lat?: number | null
+          centro_lng?: number | null
+          cliente_id?: string | null
+          codigo_incra?: string | null
+          comarca?: string | null
+          confrontantes?: Json | null
+          conjuge?: string | null
+          cpf_cnpj?: string | null
+          cpf_conjuge?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_inicio?: string | null
+          data_previsao?: string | null
+          equipe_campo?: Json | null
+          estado?: string | null
+          id?: string
+          matricula?: string
+          municipio?: string | null
+          nome?: string
+          notas_internas?: string | null
+          obs?: string | null
+          poligono?: Json | null
+          progresso?: number
+          proprietario_nome?: string | null
+          responsavel_tecnico?: string | null
+          situacao?: string | null
+          status?: string
+          updated_at?: string
+          vertices?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imoveis_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pontos: {
+        Row: {
+          altitude: number | null
+          categoria: string | null
+          codigo: string
+          created_at: string
+          created_by: string | null
+          data: string | null
+          datum: string | null
+          descricao: string | null
+          equipamento: string | null
+          id: string
+          imovel_id: string | null
+          latitude: number | null
+          leste: number | null
+          longitude: number | null
+          metodo: string | null
+          municipio: string | null
+          nome: string | null
+          norte: number | null
+          obs: string | null
+          operador: string | null
+          precisao_h: number | null
+          precisao_v: number | null
+          sistema: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          altitude?: number | null
+          categoria?: string | null
+          codigo: string
+          created_at?: string
+          created_by?: string | null
+          data?: string | null
+          datum?: string | null
+          descricao?: string | null
+          equipamento?: string | null
+          id?: string
+          imovel_id?: string | null
+          latitude?: number | null
+          leste?: number | null
+          longitude?: number | null
+          metodo?: string | null
+          municipio?: string | null
+          nome?: string | null
+          norte?: number | null
+          obs?: string | null
+          operador?: string | null
+          precisao_h?: number | null
+          precisao_v?: number | null
+          sistema?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          altitude?: number | null
+          categoria?: string | null
+          codigo?: string
+          created_at?: string
+          created_by?: string | null
+          data?: string | null
+          datum?: string | null
+          descricao?: string | null
+          equipamento?: string | null
+          id?: string
+          imovel_id?: string | null
+          latitude?: number | null
+          leste?: number | null
+          longitude?: number | null
+          metodo?: string | null
+          municipio?: string | null
+          nome?: string | null
+          norte?: number | null
+          obs?: string | null
+          operador?: string | null
+          precisao_h?: number | null
+          precisao_v?: number | null
+          sistema?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pontos_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "imoveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          nome?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "tecnico" | "visualizador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +538,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "tecnico", "visualizador"],
+    },
   },
 } as const
