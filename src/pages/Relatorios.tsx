@@ -1,7 +1,8 @@
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useGeoStore } from "@/store/useGeoStore";
+import { usePontos } from "@/hooks/usePontos";
+import { useDocumentos } from "@/hooks/useDocumentos";
 import { useImoveis } from "@/hooks/useImoveis";
 import { FileBarChart, MapPinned, Building2, ListChecks, UserCheck, AlertTriangle, Download } from "lucide-react";
 

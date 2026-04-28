@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useGeoStore } from "@/store/useGeoStore";
+import { usePontos } from "@/hooks/usePontos";
 import { useImoveis } from "@/hooks/useImoveis";
 import { MapView } from "@/components/MapView";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export default function MapaPage() {
-  const { pontos } = useGeoStore();
+  const { data: pontos = [] } = usePontos();
   const { data: imoveis = [] } = useImoveis();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
