@@ -31,7 +31,10 @@ export function useCreateCliente() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: Partial<Cliente>) => {
-      const { data: c, error } = await supabase.from("clientes").insert(clienteToRow(data)).select().single();
+      const row: any = clienteToRow(data);
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user?.id) row.created_by = userData.user.id;
+      const { data: c, error } = await supabase.from("clientes").insert(row).select().single();
       if (error) throw error;
       return rowToCliente(c);
     },

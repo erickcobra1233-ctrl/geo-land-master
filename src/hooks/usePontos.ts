@@ -24,7 +24,10 @@ export function useCreatePonto() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: Partial<Ponto>) => {
-      const { data: p, error } = await supabase.from("pontos").insert(pontoToRow(data)).select().single();
+      const row: any = pontoToRow(data);
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user?.id) row.created_by = userData.user.id;
+      const { data: p, error } = await supabase.from("pontos").insert(row).select().single();
       if (error) throw error;
       return rowToPonto(p);
     },
