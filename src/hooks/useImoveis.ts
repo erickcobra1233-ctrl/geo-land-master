@@ -42,7 +42,7 @@ export function useCreateImovel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: Partial<Imovel>) => {
-      const row = imovelToRow(data);
+      const row = imovelToRow(data) as ImovelRow;
       const { data: created, error } = await supabase.from("imoveis").insert(row).select().single();
       if (error) throw error;
       return rowToImovel(created);
@@ -59,7 +59,7 @@ export function useUpdateImovel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Imovel> }) => {
-      const row = imovelToRow(data);
+      const row = imovelToRow(data) as ImovelRow;
       const { data: updated, error } = await supabase
         .from("imoveis")
         .update(row)

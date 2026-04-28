@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { useImoveis } from "@/hooks/useImoveis";
 import { useClientes } from "@/hooks/useClientes";
 import { ImovelFormDialog } from "@/components/forms/ImovelFormDialog";
-import { getStoredUser, logout } from "@/services/auth";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/services/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +27,7 @@ export function Topbar() {
   const { data: imoveis = [] } = useImoveis();
   const { data: clientes = [] } = useClientes();
   const navigate = useNavigate();
-  const user = getStoredUser();
+  const { user } = useAuth();
 
   // Atalho ⌘K / Ctrl+K
   useEffect(() => {
@@ -171,8 +172,8 @@ export function Topbar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => {
-                logout();
+              onClick={async () => {
+                await signOut();
                 navigate("/login", { replace: true });
               }}
               className="text-destructive focus:text-destructive"
