@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { rowToImovel, imovelToRow } from "@/services/mappers";
 import type { Imovel, ProcessStatus } from "@/data/mockData";
 
+type ImovelRow = any;
+
 export const imoveisKeys = {
   all: ["imoveis"] as const,
   list: () => [...imoveisKeys.all, "list"] as const,
