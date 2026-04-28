@@ -1,17 +1,23 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { useGeoStore } from "@/store/useGeoStore";
+import { usePontos, useCreatePonto, useDeletePonto } from "@/hooks/usePontos";
+import { useImoveis } from "@/hooks/useImoveis";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Upload, MapPinned, Download, Link2, Unlink } from "lucide-react";
+import { Search, Plus, Upload, MapPinned, Download, Link2, Unlink, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapView } from "@/components/MapView";
-import { responsaveisUnicos } from "@/data/mockData";
 import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export default function Pontos() {
-  const { pontos, imoveis } = useGeoStore();
+  const { data: pontos = [] } = usePontos();
+  const { data: imoveis = [] } = useImoveis();
+  const createPonto = useCreatePonto();
+  const deletePonto = useDeletePonto();
+  const [novoOpen, setNovoOpen] = useState(false);
   const [q, setQ] = useState("");
   const [tipo, setTipo] = useState("all");
   const [mun, setMun] = useState("all");
