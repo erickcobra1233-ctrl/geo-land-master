@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { useGeoStore } from "@/store/useGeoStore";
+import { useDocumentos, useDeleteDocumento } from "@/hooks/useDocumentos";
 import { useImoveis } from "@/hooks/useImoveis";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, FileText, FileSpreadsheet, FileArchive, Image as ImageIcon, Eye, Download, Search, AlertTriangle, CheckCircle2, Send } from "lucide-react";
+import { Upload, FileText, FileSpreadsheet, FileArchive, Image as ImageIcon, Eye, Download, Search, AlertTriangle, CheckCircle2, Send, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,8 +22,9 @@ const CATS = [
 ];
 
 export default function Documentos() {
-  const { documentos } = useGeoStore();
+  const { data: documentos = [] } = useDocumentos();
   const { data: imoveis = [] } = useImoveis();
+  const deleteDoc = useDeleteDocumento();
   const [cat, setCat] = useState("all");
   const [q, setQ] = useState("");
   const [imovel, setImovel] = useState("all");
