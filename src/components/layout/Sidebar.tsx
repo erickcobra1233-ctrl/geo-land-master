@@ -12,6 +12,10 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/services/auth";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
 const nav = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -25,6 +29,15 @@ const nav = [
 ];
 
 export function Sidebar() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const initials = (user?.nome || user?.email || "??")
+    .split(/\s+/)
+    .map((s) => s[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
   return (
     <aside className="hidden md:flex w-64 shrink-0 flex-col bg-gradient-sidebar border-r border-sidebar-border">
       {/* Brand */}
@@ -69,17 +82,25 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-sidebar-accent transition-colors cursor-pointer">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-md">
           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground text-xs font-semibold">
-            CM
+            {initials}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold text-sidebar-accent-foreground truncate">
-              Eng. Carlos Mendes
+              {user?.nome || "Usuário"}
             </div>
-            <div className="text-[10px] text-sidebar-foreground/60">CREA-MT 28.412</div>
+            <div className="text-[10px] text-sidebar-foreground/60 truncate">
+              {user?.email || "—"}
+            </div>
           </div>
-          <Settings className="w-4 h-4 text-sidebar-foreground/60" />
+          <button
+            onClick={async () => { await signOut(); navigate("/login", { replace: true }); }}
+            className="text-sidebar-foreground/60 hover:text-destructive transition-colors"
+            title="Sair"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </aside>
