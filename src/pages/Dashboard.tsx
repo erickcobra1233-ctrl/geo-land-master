@@ -71,6 +71,8 @@ export default function Dashboard() {
         subtitle="Indicadores operacionais do escritório de georreferenciamento"
       />
 
+      {isEmpty && <SeedDataCard />}
+
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <KpiCard icon={Layers} label="Imóveis" value={totalImoveis} accent="primary" trend={`${areaTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} ha total`} />
