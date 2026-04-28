@@ -75,7 +75,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <KpiCard icon={Layers} label="Imóveis" value={totalImoveis} accent="primary" trend={`${areaTotal.toLocaleString("pt-BR", { maximumFractionDigits: 0 })} ha total`} />
         <KpiCard icon={Activity} label="Em andamento" value={emAndamento} accent="info" trend="ativos" />
-        <KpiCard icon={CheckCircle2} label="Concluídos" value={concluidos} accent="success" trend={`${Math.round((concluidos / totalImoveis) * 100)}% do total`} />
+        <KpiCard icon={CheckCircle2} label="Concluídos" value={concluidos} accent="success" trend={totalImoveis ? `${Math.round((concluidos / totalImoveis) * 100)}% do total` : "0%"} />
         <KpiCard icon={AlertTriangle} label="Prazos vencidos" value={vencidos} accent="destructive" trend={`${proximos} próximos`} />
         <KpiCard icon={MapPinned} label="Pontos no banco" value={pontos.length} accent="secondary" trend="reutilizáveis" />
       </div>
