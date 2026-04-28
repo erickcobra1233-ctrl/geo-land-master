@@ -16,7 +16,8 @@ const RELATORIOS = [
 ];
 
 export default function Relatorios() {
-  const { pontos, documentos } = useGeoStore();
+  const { data: pontos = [] } = usePontos();
+  const { data: documentos = [] } = useDocumentos();
   const { data: imoveis = [] } = useImoveis();
 
   return (

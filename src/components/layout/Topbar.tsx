@@ -2,7 +2,7 @@ import { Bell, Search, Plus, HelpCircle, MapPin, Layers, User2, LogOut } from "l
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
-import { useGeoStore } from "@/store/useGeoStore";
+import { usePontos } from "@/hooks/usePontos";
 import { useNavigate } from "react-router-dom";
 import { useImoveis } from "@/hooks/useImoveis";
 import { useClientes } from "@/hooks/useClientes";
@@ -23,7 +23,7 @@ export function Topbar() {
   const [open, setOpen] = useState(false);
   const [novoImovelOpen, setNovoImovelOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { pontos } = useGeoStore();
+  const { data: pontos = [] } = usePontos();
   const { data: imoveis = [] } = useImoveis();
   const { data: clientes = [] } = useClientes();
   const navigate = useNavigate();
