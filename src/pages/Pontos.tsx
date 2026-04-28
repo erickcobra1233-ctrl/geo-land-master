@@ -119,7 +119,7 @@ export default function Pontos() {
               <SelectTrigger><SelectValue placeholder="Operador" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos operadores</SelectItem>
-                {responsaveisUnicos.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                {Array.from(new Set(pontos.map((p) => p.operador).filter(Boolean))).map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
