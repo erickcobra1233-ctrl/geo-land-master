@@ -115,7 +115,7 @@ export default function Pontos() {
               <SelectTrigger><SelectValue placeholder="Imóvel" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos imóveis</SelectItem>
-                {imoveis.map((i) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                {imoveis.filter((i) => i.id).map((i) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={oper} onValueChange={setOper}>
