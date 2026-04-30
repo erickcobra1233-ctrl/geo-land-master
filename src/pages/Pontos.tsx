@@ -220,13 +220,35 @@ function exportarCSV(pontos: ReturnType<typeof usePontos>["data"] extends infer 
 }
 
 function NovoPontoDialog({ open, onOpenChange, onSubmit, imoveis, saving }: any) {
-  const [form, setForm] = useState({ codigo: "", nome: "", tipo: "Marco", latitude: 0, longitude: 0, altitude: 0, datum: "SIRGAS 2000", sistema: "UTM 22S", metodo: "GNSS RTK", equipamento: "", municipio: "", operador: "", imovelId: "", precisaoH: 0.01, precisaoV: 0.02 });
+  const initial = { codigo: "", nome: "", tipo: "Marco", latitude: "", longitude: "", altitude: "", datum: "SIRGAS 2000", sistema: "UTM 22S", metodo: "GNSS RTK", equipamento: "", municipio: "", operador: "", imovelId: "none", precisaoH: "0.01", precisaoV: "0.02" };
+  const [form, setForm] = useState(initial);
+  // Reset ao reabrir
+  useMemo(() => { if (open) setForm(initial); /* eslint-disable-next-line */ }, [open]);
   function set<K extends keyof typeof form>(k: K, v: any) { setForm((s) => ({ ...s, [k]: v })); }
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const lat = Number(form.latitude);
+    const lon = Number(form.longitude);
+    if (!form.codigo.trim()) return;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0)) {
+      alert("Informe latitude e longitude válidas (não podem ser ambas 0).");
+      return;
+    }
+    onSubmit({
+      ...form,
+      latitude: lat,
+      longitude: lon,
+      altitude: Number(form.altitude) || 0,
+      precisaoH: Number(form.precisaoH) || 0,
+      precisaoV: Number(form.precisaoV) || 0,
+      imovelId: form.imovelId === "none" ? undefined : form.imovelId,
+    });
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader><DialogTitle>Novo ponto</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); onSubmit({ ...form, imovelId: form.imovelId || undefined }); }} className="grid grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
           <Field label="Código *"><Input required value={form.codigo} onChange={(e) => set("codigo", e.target.value)} className="font-mono" /></Field>
           <Field label="Tipo">
             <Select value={form.tipo} onValueChange={(v) => set("tipo", v)}>
@@ -237,16 +259,16 @@ function NovoPontoDialog({ open, onOpenChange, onSubmit, imoveis, saving }: any)
             </Select>
           </Field>
           <Field label="Nome" className="col-span-2"><Input value={form.nome} onChange={(e) => set("nome", e.target.value)} /></Field>
-          <Field label="Latitude"><Input type="number" step="0.000001" value={form.latitude} onChange={(e) => set("latitude", Number(e.target.value))} /></Field>
-          <Field label="Longitude"><Input type="number" step="0.000001" value={form.longitude} onChange={(e) => set("longitude", Number(e.target.value))} /></Field>
-          <Field label="Altitude (m)"><Input type="number" step="0.01" value={form.altitude} onChange={(e) => set("altitude", Number(e.target.value))} /></Field>
-          <Field label="Precisão H (m)"><Input type="number" step="0.001" value={form.precisaoH} onChange={(e) => set("precisaoH", Number(e.target.value))} /></Field>
+          <Field label="Latitude *"><Input type="number" step="0.000001" placeholder="-15.781234" value={form.latitude} onChange={(e) => set("latitude", e.target.value)} /></Field>
+          <Field label="Longitude *"><Input type="number" step="0.000001" placeholder="-52.934567" value={form.longitude} onChange={(e) => set("longitude", e.target.value)} /></Field>
+          <Field label="Altitude (m)"><Input type="number" step="0.01" placeholder="0.00" value={form.altitude} onChange={(e) => set("altitude", e.target.value)} /></Field>
+          <Field label="Precisão H (m)"><Input type="number" step="0.001" value={form.precisaoH} onChange={(e) => set("precisaoH", e.target.value)} /></Field>
           <Field label="Datum"><Input value={form.datum} onChange={(e) => set("datum", e.target.value)} /></Field>
           <Field label="Equipamento"><Input value={form.equipamento} onChange={(e) => set("equipamento", e.target.value)} /></Field>
           <Field label="Município"><Input value={form.municipio} onChange={(e) => set("municipio", e.target.value)} /></Field>
           <Field label="Operador"><Input value={form.operador} onChange={(e) => set("operador", e.target.value)} /></Field>
           <Field label="Vincular ao imóvel" className="col-span-2">
-            <Select value={form.imovelId || "none"} onValueChange={(v) => set("imovelId", v === "none" ? "" : v)}>
+            <Select value={form.imovelId} onValueChange={(v) => set("imovelId", v)}>
               <SelectTrigger><SelectValue placeholder="Nenhum (avulso)" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum (ponto avulso)</SelectItem>
