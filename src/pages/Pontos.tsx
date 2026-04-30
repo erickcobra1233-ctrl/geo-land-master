@@ -19,6 +19,8 @@ export default function Pontos() {
   const createPonto = useCreatePonto();
   const createBulk = useCreatePontosBulk();
   const deletePonto = useDeletePonto();
+  const deleteBulk = useDeletePontosBulk();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [novoOpen, setNovoOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [q, setQ] = useState("");
