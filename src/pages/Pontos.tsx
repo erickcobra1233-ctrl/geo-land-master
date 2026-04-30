@@ -92,7 +92,7 @@ export default function Pontos() {
                 <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos tipos</SelectItem>
-                  {tipos.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  {tipos.filter(Boolean).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={vinc} onValueChange={(v) => setVinc(v as typeof vinc)}>
