@@ -219,7 +219,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="text-[10px] text-muted-foreground font-mono whitespace-nowrap">
-                  {format(parseISO(p.data), "dd MMM", { locale: ptBR })}
+                  {(() => { try { return p.data ? format(parseISO(p.data), "dd MMM", { locale: ptBR }) : "—"; } catch { return "—"; } })()}
                 </div>
               </div>
             ))}
