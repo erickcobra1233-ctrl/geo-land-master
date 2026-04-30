@@ -63,6 +63,21 @@ export default function Pontos() {
         subtitle={`${filtered.length} de ${pontos.length} pontos · ${stats.avulsos} avulsos reutilizáveis · ${stats.refer} RN/IBGE`}
         actions={
           <>
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-2"
+                disabled={deleteBulk.isPending}
+                onClick={async () => {
+                  if (!confirm(`Excluir ${selectedIds.size} ponto(s) selecionado(s)?`)) return;
+                  await deleteBulk.mutateAsync(Array.from(selectedIds));
+                  setSelectedIds(new Set());
+                }}
+              >
+                <Trash2 className="w-4 h-4" /> Excluir {selectedIds.size}
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="gap-2" onClick={() => setImportOpen(true)}><Upload className="w-4 h-4" /> Importar (Posição)</Button>
             <Button variant="outline" size="sm" className="gap-2" onClick={() => exportarPosicao(filtered)}><Download className="w-4 h-4" /> Exportar (Posição)</Button>
             <Button size="sm" className="gap-2" onClick={() => setNovoOpen(true)}><Plus className="w-4 h-4" /> Novo ponto</Button>
