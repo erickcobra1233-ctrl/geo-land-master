@@ -209,6 +209,14 @@ export default function Pontos() {
         imoveis={imoveis}
         saving={createPonto.isPending}
       />
+
+      <ImportarPontosDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        imoveis={imoveis}
+        saving={createBulk.isPending}
+        onSubmit={async (lista) => { await createBulk.mutateAsync(lista); setImportOpen(false); }}
+      />
     </div>
   );
 }
