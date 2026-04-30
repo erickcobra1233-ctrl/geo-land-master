@@ -92,7 +92,7 @@ export default function Pontos() {
                 <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos tipos</SelectItem>
-                  {tipos.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  {tipos.filter(Boolean).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={vinc} onValueChange={(v) => setVinc(v as typeof vinc)}>
@@ -108,14 +108,14 @@ export default function Pontos() {
               <SelectTrigger><SelectValue placeholder="Município" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos municípios</SelectItem>
-                {municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                {municipios.filter(Boolean).map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={imovel} onValueChange={setImovel}>
               <SelectTrigger><SelectValue placeholder="Imóvel" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos imóveis</SelectItem>
-                {imoveis.map((i) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                {imoveis.filter((i) => i.id).map((i) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={oper} onValueChange={setOper}>
@@ -331,7 +331,7 @@ function NovoPontoDialog({ open, onOpenChange, onSubmit, imoveis, saving }: any)
               <SelectTrigger><SelectValue placeholder="Nenhum (avulso)" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum (ponto avulso)</SelectItem>
-                {imoveis.map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                {imoveis.filter((i: any) => i.id).map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </Field>
@@ -483,7 +483,7 @@ function ImportarPontosDialog({ open, onOpenChange, onSubmit, imoveis, saving }:
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum (pontos avulsos)</SelectItem>
-                {imoveis.map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                {imoveis.filter((i: any) => i.id).map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </Field>
