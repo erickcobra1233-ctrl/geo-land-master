@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { usePontos, useCreatePonto, useDeletePonto } from "@/hooks/usePontos";
+import { usePontos, useCreatePonto, useCreatePontosBulk, useDeletePonto } from "@/hooks/usePontos";
 import { useImoveis } from "@/hooks/useImoveis";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,9 @@ import { Search, Plus, Upload, MapPinned, Download, Link2, Unlink, Trash2 } from
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapView } from "@/components/MapView";
 import { Link } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Pontos() {
   const { data: pontos = [] } = usePontos();
