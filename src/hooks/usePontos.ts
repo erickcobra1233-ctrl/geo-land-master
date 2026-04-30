@@ -76,3 +76,20 @@ export function useDeletePonto() {
     onError: (e: Error) => toast.error(e.message),
   });
 }
+
+export function useDeletePontosBulk() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      if (ids.length === 0) return 0;
+      const { error } = await supabase.from("pontos").delete().in("id", ids);
+      if (error) throw error;
+      return ids.length;
+    },
+    onSuccess: (n) => {
+      qc.invalidateQueries({ queryKey: pontosKeys.all });
+      toast.success(`${n} ponto(s) excluído(s)`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
