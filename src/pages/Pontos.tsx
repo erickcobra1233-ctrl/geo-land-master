@@ -61,6 +61,7 @@ export default function Pontos() {
         subtitle={`${filtered.length} de ${pontos.length} pontos · ${stats.avulsos} avulsos reutilizáveis · ${stats.refer} RN/IBGE`}
         actions={
           <>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setImportOpen(true)}><Upload className="w-4 h-4" /> Importar (Posição)</Button>
             <Button variant="outline" size="sm" className="gap-2" onClick={() => exportarPosicao(filtered)}><Download className="w-4 h-4" /> Exportar (Posição)</Button>
             <Button size="sm" className="gap-2" onClick={() => setNovoOpen(true)}><Plus className="w-4 h-4" /> Novo ponto</Button>
           </>
