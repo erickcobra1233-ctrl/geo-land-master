@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { usePontos, useCreatePonto, useCreatePontosBulk, useDeletePonto } from "@/hooks/usePontos";
+import { usePontos, useCreatePonto, useCreatePontosBulk, useDeletePonto, useDeletePontosBulk } from "@/hooks/usePontos";
 import { useImoveis } from "@/hooks/useImoveis";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ export default function Pontos() {
   const createPonto = useCreatePonto();
   const createBulk = useCreatePontosBulk();
   const deletePonto = useDeletePonto();
+  const deleteBulk = useDeletePontosBulk();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [novoOpen, setNovoOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -61,6 +63,21 @@ export default function Pontos() {
         subtitle={`${filtered.length} de ${pontos.length} pontos · ${stats.avulsos} avulsos reutilizáveis · ${stats.refer} RN/IBGE`}
         actions={
           <>
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-2"
+                disabled={deleteBulk.isPending}
+                onClick={async () => {
+                  if (!confirm(`Excluir ${selectedIds.size} ponto(s) selecionado(s)?`)) return;
+                  await deleteBulk.mutateAsync(Array.from(selectedIds));
+                  setSelectedIds(new Set());
+                }}
+              >
+                <Trash2 className="w-4 h-4" /> Excluir {selectedIds.size}
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="gap-2" onClick={() => setImportOpen(true)}><Upload className="w-4 h-4" /> Importar (Posição)</Button>
             <Button variant="outline" size="sm" className="gap-2" onClick={() => exportarPosicao(filtered)}><Download className="w-4 h-4" /> Exportar (Posição)</Button>
             <Button size="sm" className="gap-2" onClick={() => setNovoOpen(true)}><Plus className="w-4 h-4" /> Novo ponto</Button>
@@ -141,6 +158,22 @@ export default function Pontos() {
           <table className="w-full data-table text-xs">
             <thead>
               <tr className="border-b border-border">
+                <th className="px-3 py-2.5 w-8">
+                  <input
+                    type="checkbox"
+                    aria-label="Selecionar todos"
+                    checked={filtered.length > 0 && filtered.slice(0, 120).every((p) => selectedIds.has(p.id))}
+                    onChange={(e) => {
+                      const visiveis = filtered.slice(0, 120).map((p) => p.id);
+                      setSelectedIds((prev) => {
+                        const next = new Set(prev);
+                        if (e.target.checked) visiveis.forEach((id) => next.add(id));
+                        else visiveis.forEach((id) => next.delete(id));
+                        return next;
+                      });
+                    }}
+                  />
+                </th>
                 <th className="text-left px-3 py-2.5">Código</th>
                 <th className="text-left px-3 py-2.5">Tipo</th>
                 <th className="text-left px-3 py-2.5">Vínculo</th>
@@ -159,8 +192,23 @@ export default function Pontos() {
             <tbody className="font-mono">
               {filtered.slice(0, 120).map((p) => {
                 const im = imoveis.find((i) => i.id === p.imovelId);
+                const checked = selectedIds.has(p.id);
                 return (
-                  <tr key={p.id} className="border-b border-border hover:bg-muted/40">
+                  <tr key={p.id} className={`border-b border-border hover:bg-muted/40 ${checked ? "bg-primary/5" : ""}`}>
+                    <td className="px-3 py-2">
+                      <input
+                        type="checkbox"
+                        aria-label={`Selecionar ${p.codigo}`}
+                        checked={checked}
+                        onChange={(e) => {
+                          setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            if (e.target.checked) next.add(p.id); else next.delete(p.id);
+                            return next;
+                          });
+                        }}
+                      />
+                    </td>
                     <td className="px-3 py-2 font-semibold text-primary">{p.codigo}</td>
                     <td className="px-3 py-2"><span className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-sans">{p.tipo}</span></td>
                     <td className="px-3 py-2 font-sans text-[11px]">
@@ -190,7 +238,7 @@ export default function Pontos() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={13} className="text-center py-10 text-muted-foreground font-sans">Nenhum ponto corresponde aos filtros.</td></tr>
+                <tr><td colSpan={14} className="text-center py-10 text-muted-foreground font-sans">Nenhum ponto corresponde aos filtros.</td></tr>
               )}
             </tbody>
           </table>
