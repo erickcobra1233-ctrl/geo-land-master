@@ -142,7 +142,7 @@ export default function MapaPage() {
 
         {/* Painel de detalhe flutuante */}
         {sel && (
-          <Card className="absolute top-4 right-4 w-80 p-4 shadow-pop z-[1000] animate-fade-in">
+          <Card className="absolute top-4 right-4 w-80 p-4 shadow-pop z-30 animate-fade-in">
             <div className="flex items-start justify-between mb-2">
               <div>
                 <div className="text-[11px] text-muted-foreground font-mono">{sel.codigoIncra}</div>

@@ -161,3 +161,16 @@
   font-size: 10px !important;
   background: hsl(0 0% 100% / 0.85) !important;
 }
+
+/* Force Leaflet panes/controls below Radix overlays (Dialog/Select/Popover use z-50).
+   Without this, tiles, polygons and zoom controls leak above modals. */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom { z-index: 1 !important; }
+.leaflet-tile-pane     { z-index: 1 !important; }
+.leaflet-overlay-pane  { z-index: 2 !important; }
+.leaflet-shadow-pane   { z-index: 3 !important; }
+.leaflet-marker-pane   { z-index: 4 !important; }
+.leaflet-tooltip-pane  { z-index: 5 !important; }
+.leaflet-popup-pane    { z-index: 6 !important; }
+.leaflet-control       { z-index: 7 !important; }
