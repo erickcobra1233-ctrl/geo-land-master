@@ -58,7 +58,7 @@ export default function Pontos() {
         subtitle={`${filtered.length} de ${pontos.length} pontos · ${stats.avulsos} avulsos reutilizáveis · ${stats.refer} RN/IBGE`}
         actions={
           <>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => exportarCSV(filtered)}><Download className="w-4 h-4" /> Exportar</Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => exportarPosicao(filtered)}><Download className="w-4 h-4" /> Exportar (Posição)</Button>
             <Button size="sm" className="gap-2" onClick={() => setNovoOpen(true)}><Plus className="w-4 h-4" /> Novo ponto</Button>
           </>
         }
@@ -209,14 +209,61 @@ export default function Pontos() {
   );
 }
 
-function exportarCSV(pontos: ReturnType<typeof usePontos>["data"] extends infer T ? (T extends undefined ? never : T) : never) {
-  if (!pontos || pontos.length === 0) return;
-  const head = ["codigo","nome","tipo","latitude","longitude","altitude","datum","sistema","precisao_h","operador","municipio"];
-  const rows = pontos.map((p) => [p.codigo,p.nome,p.tipo,p.latitude,p.longitude,p.altitude,p.datum,p.sistema,p.precisaoH,p.operador,p.municipio].join(","));
-  const csv = [head.join(","), ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+async function exportarPosicao(pontos: ReturnType<typeof usePontos>["data"] extends infer T ? (T extends undefined ? never : T) : never) {
+  if (!pontos || pontos.length === 0) {
+    alert("Nenhum ponto para exportar.");
+    return;
+  }
+  const JSZip = (await import("jszip")).default;
+  const zip = new JSZip();
+
+  // Linhas no padrão Posição: Código N E Cota Descrição
+  // N (Norte) e E (Leste) em metros (UTM). Quando ausente, usa 0.
+  const linhas = pontos.map((p) => {
+    const codigo = (p.codigo || "").replace(/\s+/g, "_");
+    const norte = Number(p.norte ?? 0).toFixed(3);
+    const leste = Number(p.leste ?? 0).toFixed(3);
+    const cota = Number(p.altitude ?? 0).toFixed(3);
+    const desc = (p.descricao || p.tipo || p.nome || "").replace(/[\r\n;,\t]+/g, " ").trim() || "PONTO";
+    return { codigo, norte, leste, cota, desc };
+  });
+
+  // 1. TXT separado por espaço (formato clássico Posição)
+  const txtEspaco = linhas
+    .map((l) => `${l.codigo} ${l.norte} ${l.leste} ${l.cota} ${l.desc}`)
+    .join("\r\n");
+  zip.file("pontos_posicao_espaco.txt", txtEspaco);
+
+  // 2. TXT separado por vírgula
+  const txtVirgula = linhas
+    .map((l) => `${l.codigo},${l.norte},${l.leste},${l.cota},${l.desc}`)
+    .join("\r\n");
+  zip.file("pontos_posicao_virgula.txt", txtVirgula);
+
+  // 3. CSV padrão BR (ponto-e-vírgula) com cabeçalho
+  const csv = ["Codigo;Norte;Leste;Cota;Descricao", ...linhas.map((l) => `${l.codigo};${l.norte};${l.leste};${l.cota};${l.desc}`)].join("\r\n");
+  zip.file("pontos_posicao.csv", csv);
+
+  // README explicativo
+  const readme =
+    `Exportação de pontos — formatos compatíveis com Aplicativo Posição (Alezi Teodolini)\r\n` +
+    `Gerado em: ${new Date().toLocaleString("pt-BR")}\r\n` +
+    `Total de pontos: ${pontos.length}\r\n\r\n` +
+    `Arquivos:\r\n` +
+    `  - pontos_posicao_espaco.txt   → Código N E Cota Descrição (separado por espaço)\r\n` +
+    `  - pontos_posicao_virgula.txt  → Código,N,E,Cota,Descrição (separado por vírgula)\r\n` +
+    `  - pontos_posicao.csv          → Código;N;E;Cota;Descrição (CSV padrão BR)\r\n\r\n` +
+    `Coordenadas: UTM (Norte e Leste em metros), Datum SIRGAS 2000.\r\n` +
+    `Pontos sem N/E preenchidos foram exportados com valor 0.\r\n`;
+  zip.file("LEIA-ME.txt", readme);
+
+  const blob = await zip.generateAsync({ type: "blob" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = "pontos.csv"; a.click(); URL.revokeObjectURL(url);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `pontos-posicao-${new Date().toISOString().slice(0, 10)}.zip`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function NovoPontoDialog({ open, onOpenChange, onSubmit, imoveis, saving }: any) {
