@@ -108,7 +108,7 @@ export default function Pontos() {
               <SelectTrigger><SelectValue placeholder="Município" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos municípios</SelectItem>
-                {municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                {municipios.filter(Boolean).map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={imovel} onValueChange={setImovel}>
