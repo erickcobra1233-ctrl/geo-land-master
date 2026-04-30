@@ -158,6 +158,22 @@ export default function Pontos() {
           <table className="w-full data-table text-xs">
             <thead>
               <tr className="border-b border-border">
+                <th className="px-3 py-2.5 w-8">
+                  <input
+                    type="checkbox"
+                    aria-label="Selecionar todos"
+                    checked={filtered.length > 0 && filtered.slice(0, 120).every((p) => selectedIds.has(p.id))}
+                    onChange={(e) => {
+                      const visiveis = filtered.slice(0, 120).map((p) => p.id);
+                      setSelectedIds((prev) => {
+                        const next = new Set(prev);
+                        if (e.target.checked) visiveis.forEach((id) => next.add(id));
+                        else visiveis.forEach((id) => next.delete(id));
+                        return next;
+                      });
+                    }}
+                  />
+                </th>
                 <th className="text-left px-3 py-2.5">Código</th>
                 <th className="text-left px-3 py-2.5">Tipo</th>
                 <th className="text-left px-3 py-2.5">Vínculo</th>
@@ -176,8 +192,23 @@ export default function Pontos() {
             <tbody className="font-mono">
               {filtered.slice(0, 120).map((p) => {
                 const im = imoveis.find((i) => i.id === p.imovelId);
+                const checked = selectedIds.has(p.id);
                 return (
-                  <tr key={p.id} className="border-b border-border hover:bg-muted/40">
+                  <tr key={p.id} className={`border-b border-border hover:bg-muted/40 ${checked ? "bg-primary/5" : ""}`}>
+                    <td className="px-3 py-2">
+                      <input
+                        type="checkbox"
+                        aria-label={`Selecionar ${p.codigo}`}
+                        checked={checked}
+                        onChange={(e) => {
+                          setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            if (e.target.checked) next.add(p.id); else next.delete(p.id);
+                            return next;
+                          });
+                        }}
+                      />
+                    </td>
                     <td className="px-3 py-2 font-semibold text-primary">{p.codigo}</td>
                     <td className="px-3 py-2"><span className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-sans">{p.tipo}</span></td>
                     <td className="px-3 py-2 font-sans text-[11px]">
@@ -207,7 +238,7 @@ export default function Pontos() {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={13} className="text-center py-10 text-muted-foreground font-sans">Nenhum ponto corresponde aos filtros.</td></tr>
+                <tr><td colSpan={14} className="text-center py-10 text-muted-foreground font-sans">Nenhum ponto corresponde aos filtros.</td></tr>
               )}
             </tbody>
           </table>
