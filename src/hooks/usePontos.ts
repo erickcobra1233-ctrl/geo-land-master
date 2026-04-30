@@ -39,6 +39,29 @@ export function useCreatePonto() {
   });
 }
 
+export function useCreatePontosBulk() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (lista: Partial<Ponto>[]) => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      const rows = lista.map((p) => {
+        const r: any = pontoToRow(p);
+        if (uid) r.created_by = uid;
+        return r;
+      });
+      const { data, error } = await supabase.from("pontos").insert(rows).select();
+      if (error) throw error;
+      return (data || []).map(rowToPonto);
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: pontosKeys.all });
+      toast.success(`${data.length} pontos importados`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
 export function useDeletePonto() {
   const qc = useQueryClient();
   return useMutation({
