@@ -331,7 +331,7 @@ function NovoPontoDialog({ open, onOpenChange, onSubmit, imoveis, saving }: any)
               <SelectTrigger><SelectValue placeholder="Nenhum (avulso)" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum (ponto avulso)</SelectItem>
-                {imoveis.map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                {imoveis.filter((i: any) => i.id).map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </Field>
