@@ -130,7 +130,7 @@ export default function ImovelDetalhe() {
         <SLAStat label="Situação" value={im.situacao} icon={CheckCircle2} accent="muted" sub={im.notasInternas ? "notas internas" : "—"} />
       </div>
 
-      <Tabs defaultValue="info" className="space-y-4">
+      <Tabs defaultValue="info" className="space-y-4" onValueChange={() => { /* trigger remount of map below */ }}>
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="info">Informações</TabsTrigger>
           <TabsTrigger value="mapa">Mapa do Imóvel</TabsTrigger>
@@ -182,9 +182,11 @@ export default function ImovelDetalhe() {
         </TabsContent>
 
         {/* MAPA */}
-        <TabsContent value="mapa">
+        <TabsContent value="mapa" forceMount={false as any}>
           <Card className="overflow-hidden p-0">
-            <div className="h-[560px]"><MapView imoveis={[im]} pontos={[]} fitTo={im.poligono} /></div>
+            <div className="h-[560px]">
+              <MapView key={`map-${im.id}`} imoveis={[im]} pontos={[]} fitTo={im.poligono} />
+            </div>
             <div className="p-4 border-t border-border flex flex-wrap gap-4 text-xs">
               <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-sm bg-primary/60 border border-primary" /> Polígono do imóvel</div>
               <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-info" /> Vértices</div>
