@@ -17,8 +17,10 @@ export default function Pontos() {
   const { data: pontos = [] } = usePontos();
   const { data: imoveis = [] } = useImoveis();
   const createPonto = useCreatePonto();
+  const createBulk = useCreatePontosBulk();
   const deletePonto = useDeletePonto();
   const [novoOpen, setNovoOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [q, setQ] = useState("");
   const [tipo, setTipo] = useState("all");
   const [mun, setMun] = useState("all");
