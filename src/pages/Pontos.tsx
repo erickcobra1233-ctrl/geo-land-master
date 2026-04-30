@@ -483,7 +483,7 @@ function ImportarPontosDialog({ open, onOpenChange, onSubmit, imoveis, saving }:
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum (pontos avulsos)</SelectItem>
-                {imoveis.map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
+                {imoveis.filter((i: any) => i.id).map((i: any) => <SelectItem key={i.id} value={i.id}>{i.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </Field>
