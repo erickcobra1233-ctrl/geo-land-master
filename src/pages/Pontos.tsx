@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { usePontos, useCreatePonto, useCreatePontosBulk, useDeletePonto } from "@/hooks/usePontos";
+import { usePontos, useCreatePonto, useCreatePontosBulk, useDeletePonto, useDeletePontosBulk } from "@/hooks/usePontos";
 import { useImoveis } from "@/hooks/useImoveis";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
